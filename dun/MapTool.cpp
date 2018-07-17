@@ -4,15 +4,12 @@
 
 HRESULT MapTool::init()
 {
-	IMAGEMANAGER->addFrameImage("map", "image/map/Map(2208x2496,23x26).bmp", 0, 0, 2208, 2496, SAMPLETILEX, SAMPLETILEY, true, RGB(255, 0, 255));
-	IMAGEMANAGER->addFrameImage("map2", "image/map/Map2(736x832,23x26).bmp", 0, 0, 736, 832, SAMPLETILEX, SAMPLETILEY, true, RGB(255, 0, 255));
-
 	setup();
 
 	// 버튼 렉트
 	for (int i = 0; i < 5; i++)
 	{
-			_rc[i] = RectMakeCenter((WINSIZEX / 2 + 300) + i * 125, WINSIZEY / 2 + 400, 120, 50);
+			_rc[i] = RectMakeCenter((WINSIZEX / 2 + 485) + i * 105, 150, 90, 50);
 	}
 	
 	return S_OK;
@@ -60,30 +57,33 @@ void MapTool::update()
 
 void MapTool::render()
 {
-	IMAGEMANAGER->render("map2", UIDC, WINSIZEX - IMAGEMANAGER->findImage("map2")->getWidth(), 0);
+	IMAGEMANAGER->render("side", UIDC);
+	IMAGEMANAGER->render("sample", UIDC, WINSIZEX - IMAGEMANAGER->findImage("sample")->getWidth(), 0);
 	
 	// 버튼 렉트
 	for (int i = 0; i < 5; i++)
 	{
-		Rectangle(UIDC, _rc[i].left, _rc[i].top, _rc[i].right, _rc[i].bottom);
+		//Rectangle(UIDC, _rc[i].left-5, _rc[i].top-5, _rc[i].right+5, _rc[i].bottom+5);
+	}
+	for (int i = 0; i < 5; i++)
+	{
+		IMAGEMANAGER->frameRender("button", UIDC, _rc[i].left, _rc[i].top );
 	}
 
 	// 폰트
-
-	SetTextColor(UIDC, RGB(0, 0, 0));
+	SetTextColor(UIDC, RGB(10, 10, 10));
 
 	HFONT font, oldFont;
-	
 	font = CreateFont(30, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
 		OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
 		DEFAULT_PITCH | FF_SWISS, TEXT("Bernard MT Condensed"));
-	oldFont = (HFONT)SelectObject(DC, font);
-	DrawText(UIDC, TEXT("저장"), strlen("저장"), &_rc[0], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("불러오기"), strlen("불러오기"), &_rc[1], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("지형"), strlen("지형"), &_rc[2], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("오브젝트"), strlen("오브젝트"), &_rc[3], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("지우개"), strlen("지우개"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	SelectObject(DC, oldFont);
+	oldFont = (HFONT)SelectObject(UIDC, font);
+	DrawText(UIDC, TEXT("방"), strlen("방"), &_rc[0], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("길"), strlen("길"), &_rc[1], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("타일"), strlen("타일"), &_rc[2], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("아이템"), strlen("아이템"), &_rc[3], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("몬스터"), strlen("몬스터"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	SelectObject(UIDC, oldFont);
 	DeleteObject(font);
 
 
@@ -178,9 +178,9 @@ void MapTool::setup()
 			_sampleTile[i * SAMPLETILEX + j].terrainFrameY = i;
 
 			SetRect(&_sampleTile[i * SAMPLETILEX + j].rctile,
-				(WINSIZEX - IMAGEMANAGER->findImage("map2")->getWidth()) + j * TILESIZE /3,
+				(WINSIZEX - IMAGEMANAGER->findImage("sample")->getWidth()) + j * TILESIZE /3,
 				i * TILESIZE /3,
-				(WINSIZEX - IMAGEMANAGER->findImage("map2")->getWidth()) + j * TILESIZE /3 + TILESIZE /3,
+				(WINSIZEX - IMAGEMANAGER->findImage("sample")->getWidth()) + j * TILESIZE /3 + TILESIZE /3,
 				i * TILESIZE /3 + TILESIZE /3);
 		}
 	}
@@ -278,7 +278,7 @@ void MapTool::setmap()
 
 TERRAIN MapTool::terrainSelect(int FrameX, int FrameY)
 {
-	for (int i = 15; i < 19; i++)
+	/*for (int i = 15; i < 19; i++)
 	{
 		for (int j = 0; j < 5; j++)
 		{
@@ -292,113 +292,113 @@ TERRAIN MapTool::terrainSelect(int FrameX, int FrameY)
 		{
 			if (FrameX == i && FrameY == j) return TR_WALL;
 		}
-	}
+	}*/
 
-	return TR_WALL;
+	return TR_FLOOR;
 }
 
 OBJECT MapTool::objSelect(int FrameX, int FrameY)
 {
-	for (int i = 0; i < 3; i++)
-	{
-		for (int j = 0; j < 7; j++)
-		{
-			if (FrameX == i && FrameY == j) return OBJ_CULUMN;
-			if (j == 2)
-			{
-				if (FrameX == i && FrameY == j) return OBJ_CEILING;
-			}
-			if (j == 4)
-			{
-				if (FrameX == i && FrameY == j) return OBJ_CEILING;
-			}
-			if (j == 6)
-			{
-				if (FrameX == i && FrameY == j) return OBJ_CEILING;
-			}
-		}
-	}
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	for (int j = 0; j < 7; j++)
+	//	{
+	//		if (FrameX == i && FrameY == j) return OBJ_CULUMN;
+	//		if (j == 2)
+	//		{
+	//			if (FrameX == i && FrameY == j) return OBJ_CEILING;
+	//		}
+	//		if (j == 4)
+	//		{
+	//			if (FrameX == i && FrameY == j) return OBJ_CEILING;
+	//		}
+	//		if (j == 6)
+	//		{
+	//			if (FrameX == i && FrameY == j) return OBJ_CEILING;
+	//		}
+	//	}
+	//}
 
-	for (int i = 3; i < 13; i++)
-	{
-		for (int j = 0; j < 3; j++)
-		{
-			if (FrameX == i && FrameY == j) return OBJ_GROUND; 
-		}
-	}
+	//for (int i = 3; i < 13; i++)
+	//{
+	//	for (int j = 0; j < 3; j++)
+	//	{
+	//		if (FrameX == i && FrameY == j) return OBJ_GROUND; 
+	//	}
+	//}
 
-	for (int i = 3; i < 5; i++)
-	{
-		if (FrameX == i && FrameY == 3) return OBJ_GROUND;
-	}
-	
-	for (int i = 3; i < 11; i++)
-	{
-		if (FrameX == i && FrameY == 4) return OBJ_GROUND;
-	}
-	
-	for (int i = 10; i < 20; i++)
-	{
-		if (FrameX == i && FrameY == 1) return OBJ_GROUND;
-	}
+	//for (int i = 3; i < 5; i++)
+	//{
+	//	if (FrameX == i && FrameY == 3) return OBJ_GROUND;
+	//}
+	//
+	//for (int i = 3; i < 11; i++)
+	//{
+	//	if (FrameX == i && FrameY == 4) return OBJ_GROUND;
+	//}
+	//
+	//for (int i = 10; i < 20; i++)
+	//{
+	//	if (FrameX == i && FrameY == 1) return OBJ_GROUND;
+	//}
 
-	for (int i = 5; i < 10; i++)
-	{
-		for (int j = 17; j < 18; j++)
-		{
-			if(FrameX == i && FrameY == j) return OBJ_GROUND;
-		}
-	}
-	
-	for (int i = 15; i < 21; i++)
-	{
-		if (FrameX == i && FrameY == 18) return OBJ_GROUND;
-	}
+	//for (int i = 5; i < 10; i++)
+	//{
+	//	for (int j = 17; j < 18; j++)
+	//	{
+	//		if(FrameX == i && FrameY == j) return OBJ_GROUND;
+	//	}
+	//}
+	//
+	//for (int i = 15; i < 21; i++)
+	//{
+	//	if (FrameX == i && FrameY == 18) return OBJ_GROUND;
+	//}
 
-	for (int i = 0; i < 4; i++)
-	{
-		if (FrameX == i && FrameY == 24) return OBJ_GROUND;
-	}
+	//for (int i = 0; i < 4; i++)
+	//{
+	//	if (FrameX == i && FrameY == 24) return OBJ_GROUND;
+	//}
 
-	for (int i = 0; i < 19; i++)
-	{
-		if (FrameX == i && FrameY == 25) return OBJ_GROUND;
-	}
+	//for (int i = 0; i < 19; i++)
+	//{
+	//	if (FrameX == i && FrameY == 25) return OBJ_GROUND;
+	//}
 
-	for (int i = 17; i < 20; i++)
-	{
-		if (FrameX == i && FrameY == 13) return OBJ_THORN;
-	}
+	//for (int i = 17; i < 20; i++)
+	//{
+	//	if (FrameX == i && FrameY == 13) return OBJ_THORN;
+	//}
 
-	//오브젝트인지 잘 모르겠음
-	for (int i = 5; i < 8; i++)
-	{
-		for (int j = 5; j < 8; j++)
-		{
-			if (i == 6 && j == 6) continue;
-			if (FrameX == i && FrameY == j) return OBJ_GROUND;
-		}
-	}
-	for (int i = 8; i < 11; i++)
-	{
-		if (FrameX = i && FrameY == 5) return OBJ_GROUND;
-	}
+	////오브젝트인지 잘 모르겠음
+	//for (int i = 5; i < 8; i++)
+	//{
+	//	for (int j = 5; j < 8; j++)
+	//	{
+	//		if (i == 6 && j == 6) continue;
+	//		if (FrameX == i && FrameY == j) return OBJ_GROUND;
+	//	}
+	//}
+	//for (int i = 8; i < 11; i++)
+	//{
+	//	if (FrameX = i && FrameY == 5) return OBJ_GROUND;
+	//}
 
-	if (FrameX == 8 && FrameY == 6) return OBJ_GROUND;
-	//여기까지
+	//if (FrameX == 8 && FrameY == 6) return OBJ_GROUND;
+	////여기까지
 
-	if (FrameX == 11 && FrameY == 0) return OBJ_GROUND;
-	if (FrameX == 12 && FrameY == 0) return OBJ_GROUND;
-	if (FrameX == 13 && FrameY == 0) return OBJ_GROUND;
-	if (FrameX == 7 && FrameY == 3) return OBJ_GROUND;
-	if (FrameX == 8 && FrameY == 3) return OBJ_GROUND;
-	if (FrameX == 10 && FrameY == 3) return OBJ_GROUND;
-	if (FrameX == 11 && FrameY == 18) return OBJ_GROUND;
-	if (FrameX == 12 && FrameY == 18) return OBJ_GROUND;
-	if (FrameX == 3 && FrameY == 12) return	OBJ_GOGROUND;
-	if (FrameX == 6 && FrameY == 24) return OBJ_GROUND;
-	if (FrameX == 7 && FrameY == 24) return OBJ_GROUND;
-	if (FrameX == 8 && FrameY == 24) return OBJ_GROUND;
+	//if (FrameX == 11 && FrameY == 0) return OBJ_GROUND;
+	//if (FrameX == 12 && FrameY == 0) return OBJ_GROUND;
+	//if (FrameX == 13 && FrameY == 0) return OBJ_GROUND;
+	//if (FrameX == 7 && FrameY == 3) return OBJ_GROUND;
+	//if (FrameX == 8 && FrameY == 3) return OBJ_GROUND;
+	//if (FrameX == 10 && FrameY == 3) return OBJ_GROUND;
+	//if (FrameX == 11 && FrameY == 18) return OBJ_GROUND;
+	//if (FrameX == 12 && FrameY == 18) return OBJ_GROUND;
+	//if (FrameX == 3 && FrameY == 12) return	OBJ_GOGROUND;
+	//if (FrameX == 6 && FrameY == 24) return OBJ_GROUND;
+	//if (FrameX == 7 && FrameY == 24) return OBJ_GROUND;
+	//if (FrameX == 8 && FrameY == 24) return OBJ_GROUND;
 
 
 	return OBJ_NONE;

@@ -26,9 +26,13 @@
 #define TILESIZEX TILESIZE * TILEX
 #define TILESIZEY TILESIZE * TILEY
 
-// 타일셋 갯수
-#define SAMPLETILEX 41
-#define SAMPLETILEY 51
+// 보이는 타일셋
+#define SAMPLETILEX 12
+#define SAMPLETILEY 9
+
+// 찍히는 타일셋
+#define MAPTILEX 41
+#define MAPTILEY 51
 
 // 맵이름
 #define MAPNAME "map/myDungen.map"
@@ -36,15 +40,13 @@
 // 지형	
 enum TERRAIN
 {
-	//무조건 지나갈 수 있는 배경 벽지
-	TR_WALL, TOWN_GROUND, TR_NULL
+	TR_NULL,	TR_FLOOR,	TR_WATER
 };
 
 // 오브젝트
 enum OBJECT
 {
-	//비어있음	못지나가는땅		아래점프로 내려가는땅		못지나가는 벽 기둥	미닫이문			가시		      천장        대각선좀 제발 제발제발제발제발제발제발제발제발제발제발제발 문짝
-	OBJ_NONE, 	OBJ_GROUND,			OBJ_GOGROUND,		 OBJ_CULUMN,		OBJ_vDoor,    OBJ_THORN,  OBJ_CEILING ,  OBJ_DIAGONAL,  OBJ_DIAGONAL_LEFT , OBJ_DIAGONAL_RIGHT, OBJ_DOOR2
+	OBJ_NONE, 	OBJ_1,	OBJ_2,	OBJ_3,	OBJ_4,   OBJ_6,  OBJ_7 ,  OBJ_8,  OBJ_9 , OBJ_TRAP,	OBJ_ETC
 };
 
 // 포지션 정의
