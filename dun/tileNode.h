@@ -15,7 +15,7 @@
 //#define BACKGROUNDSIZEY TILEY*TILESIZE
 
 //작은 카메라 사이즈
-#define CAMERAX 1100
+#define CAMERAX 43*32
 #define CAMERAY 1080
 
 // 타일 규격
@@ -26,9 +26,13 @@
 #define TILESIZEX TILESIZE * TILEX
 #define TILESIZEY TILESIZE * TILEY
 
-// 보이는 타일셋
-#define SAMPLETILEX 12
-#define SAMPLETILEY 9
+// 샘플 타일셋
+#define SAMPLETILEX 9
+#define SAMPLETILEY 12
+
+//샘플타일 위치
+#define SAMPLEX 150		//뺄셈
+#define SAMPLEY 500		//덧셈
 
 // 찍히는 타일셋
 #define MAPTILEX 41
@@ -46,14 +50,14 @@ enum TERRAIN
 // 오브젝트
 enum OBJECT
 {
-	OBJ_NONE, 	OBJ_1,	OBJ_2,	OBJ_3,	OBJ_4,   OBJ_6,  OBJ_7 ,  OBJ_8,  OBJ_9 , OBJ_TRAP,	OBJ_ETC
+	OBJ_NONE, 	OBJ_WALL, OBJ_TREE, OBJ_TRAP,	OBJ_ETC
 };
 
 // 포지션 정의
 enum POS
 {
 	//워프할 때 플레이어 나오는 곳(워프지점)	플레이어 입장시 리젠		마법진 리젠		보물상자
-	POS_PLAYER, POS_ENEMY1, POS_ENEMY2, POS_TREASURE
+	POS_1, POS_2, POS_3, POS_4, POS_5, POS_6, POS_7, POS_8, POS_9, POS_10, POS_11, POS_12, POS_13, POS_14, POS_15, POS_16, POS_17, POS_18
 };
 
 // 타일 구조체

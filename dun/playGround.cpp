@@ -11,10 +11,11 @@ HRESULT playGround::init(void)
 	gameNode::init(true);
 	Image_init();
 	Sound_init();
-	
-	mode = 맵툴;	
 	_mapTool = new MapTool;
 	_mapTool->init();
+
+	mode = 맵툴;	
+	
 
 	//vector<string> vStr;
 	//vStr.resize(4);
@@ -43,15 +44,13 @@ HRESULT playGround::init(void)
 void playGround::release(void)	
 {
 	gameNode::release();
-
 	
 }
 
 void playGround::update(void)	
 {
 	gameNode::update();
-
-	if(mode == 맵툴) _mapTool->update();
+	
 
 	//SCENEMANAGER->update();
 	//EFFECTMANAGER->update();
@@ -59,13 +58,16 @@ void playGround::update(void)
 
 	if (mode == 맵툴)
 	{
-		if (KEYMANAGER->isStayKeyDown('D'))//&& CAMERAMANAGER->getCameraCenter().x+WINSIZEX/2<BACKGROUNDSIZEX)
+		if (_mapTool->getCanMove() == false)	return;
+		_mapTool->update();
+
+		if (KEYMANAGER->isStayKeyDown('D')&& CAMERAMANAGER->getCameraCenter().x + WINSIZEX / 2<(_mapTool->getCurrentXY().x+22)*32&&CAMERAMANAGER->getCameraCenter().x+WINSIZEX/2<TILESIZEX+500)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x + 50, CAMERAMANAGER->getCameraCenter().y));
-		if (KEYMANAGER->isStayKeyDown('S'))// && CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2<BACKGROUNDSIZEY)
+		if (KEYMANAGER->isStayKeyDown('S') && CAMERAMANAGER->getCameraCenter().y + WINSIZEX / 2<(_mapTool->getCurrentXY().y + 25) * 32&&CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2<TILESIZEY-20)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y + 50));
-		if (KEYMANAGER->isStayKeyDown('A'))// && CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2>0)
+		if (KEYMANAGER->isStayKeyDown('A') && CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2>0)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x - 50, CAMERAMANAGER->getCameraCenter().y));
-		if (KEYMANAGER->isStayKeyDown('W'))//&& CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2>0)
+		if (KEYMANAGER->isStayKeyDown('W')&& CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2>0)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y - 50));
 	}
 	
@@ -79,7 +81,7 @@ void playGround::render(void)
 
 	/////////////////////////////////////////////////////////////////////////////////////////////// 이 위로는 건들지 마시오
 	
-	_mapTool->render();
+	if (mode == 맵툴)	_mapTool->render();
 	
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////// 이 아래로도 건들지 마시오
@@ -91,6 +93,7 @@ void playGround::render(void)
 	//->render(UIDC, 54, 240, CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
 	CAMERAMANAGER->cameraRender(UIDC);
 	IMAGEMANAGER->render("UI", UIDC);
+	if (_mapTool->getCanMove() == true)
 	IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);
 	CAMERAMANAGER->render(this->getBackBuffer());
 	this->getBackBuffer()->render(getHDC(), 0, 0, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, WINSIZEX, WINSIZEY);

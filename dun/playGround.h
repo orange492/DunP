@@ -10,6 +10,10 @@ class playGround : public gameNode
 private:
 	changeMode mode;
 	MapTool * _mapTool;
+
+	int _money;
+	int _rock;
+	int _food;
 	
 
 public:
