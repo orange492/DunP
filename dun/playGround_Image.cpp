@@ -5,11 +5,12 @@
 HRESULT playGround::Image_init(void)
 {
 	/////////////////////////¸Ê
-	//IMAGEMANAGER->addFrameImage("map", "image/map/map(41,51).bmp", 0, 0, 1312, 1632, MAPTILEX, MAPTILEY, true, RGB(0, 255, 255));
-	IMAGEMANAGER->addFrameImage("map", "image/map/sample(12,9).bmp", 0, 0, 288, 384, SAMPLETILEX, SAMPLETILEY, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addFrameImage("map", "image/map/map(41,51).bmp", 0, 0, 1312, 1632, MAPTILEX, MAPTILEY, true, RGB(0, 255, 255));
+	//IMAGEMANAGER->addFrameImage("map", "image/map/sample(12,9).bmp", 0, 0, 288, 384, SAMPLETILEX, SAMPLETILEY, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addFrameImage("sample", "image/map/sample(12,9).bmp", 0, 0, 288, 384, SAMPLETILEX, SAMPLETILEY, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addFrameImage("tree", "image/map/tree(12,36).bmp", 0, 0, 384, 1152, 12, 36, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("tile", "image/map/tile.bmp", 0, 0, 32, 32, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("tile2", "image/map/tile2.bmp", 0, 0, 32, 32, true, RGB(0, 255, 255));
 	
 	/////////////////////////UI
 	IMAGEMANAGER->addImage("cursor", "image/UI/cursor.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));

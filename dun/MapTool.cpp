@@ -2,6 +2,15 @@
 #include "MapTool.h"
 
 //지우개, 전체지우개, 그리개 - 나무 막아둠
+//바위갯수 넘었을 때, 나무걸렸을때
+
+//있던 벽에 연결하면  자연스럽게 하기
+//맵 저장슬롯
+//던전입구
+//그냥타일 까는 것
+
+//가로세로이미지만들기먼저!
+//가로세로길 추가
 
 HRESULT MapTool::init()
 {
@@ -10,10 +19,14 @@ HRESULT MapTool::init()
 	// 버튼 렉트
 	for (int i = 0; i < 5; i++)
 	{
-			_rc[i] = RectMakeCenter((WINSIZEX / 2 + 485) + i * 105, 150, 90, 60);
+		_rc[i] = RectMakeCenter((WINSIZEX / 2 + 485) + i * 105, 150, 90, 60);
 	}
-	_rc[5]= RectMakeCenter((WINSIZEX / 2 + 535)+105, 1000, 90, 60);
-	_rc[6]= RectMakeCenter((WINSIZEX / 2 + 535)+210, 1000, 90, 60);
+	for (int i = 5; i < 10; i++)
+	{
+		_rc[i] = RectMakeCenter((WINSIZEX / 2 + 485) + (i-5) * 105, 1000, 90, 60);
+	}
+	//_rc[5]= RectMakeCenter((WINSIZEX / 2 + 535)+105, 1000, 90, 60);
+	//_rc[6]= RectMakeCenter((WINSIZEX / 2 + 535)+210, 1000, 90, 60);
 
 	_currentTileO = { 0,0 };
 	_currentTileT = { 5,0 };
@@ -21,7 +34,14 @@ HRESULT MapTool::init()
 	//_tree = 1;
 
 	_drag = 0;
+	_eraser = true;
+	_rock[0] =_rock[1] = 200;
 
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		setTFrame(i, 9, 0);
+		_tiles[i].terrain = TR_NULL;
+	}
 	setTree();
 	
 	return S_OK;
@@ -33,37 +53,35 @@ void MapTool::update()
 {
 	if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
 	{
+		setmap();
 		_mouseTile[1] = _mouseTile[0];
 		_drag = 1;
 	}
-	if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON))
+	else if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON))
 	{
-		_drag = 2;
-		setmap();
+		if (_select == ROOM)
+			_drag = 2;
+		else if (_select == HROAD)
+			_drag = 3;
+		else if (_select == VROAD)
+			_drag = 4;
+		else if (_select == TERRAINDRAW)
+			_drag = 5;
+		else if (_select == OBJDRAW)
+			_drag = 6;
+		else if (_select == ITEMDRAW)
+			_drag = 9;
+		else if (_select ==	MONSTER)
+			_drag = 10;
 	}
-	
-	//if (KEYMANAGER->isStayKeyDown(VK_LBUTTON))
-
-	else if (KEYMANAGER->isStayKeyDown(VK_RBUTTON))
+	else if (KEYMANAGER->isOnceKeyDown(VK_RBUTTON))
 	{
-		POINT mouse = getMemDCPoint();
-
-		if (_ptMouse.x < CAMERAX && _ptMouse.y < CAMERAY)
-		{
-			for (int i = 0; i < TILEX * TILEY; i++)
-			{
-				if (PtInRect(&_tiles[i].rc, mouse)&& _tiles[i].object!=OBJ_TREE)
-				{
-					_tiles[i].objFrameX = NULL;
-					_tiles[i].objFrameY = NULL;
-
-					_tiles[i].object = OBJ_NONE;
-
-					InvalidateRect(_hWnd, NULL, false);
-					break;
-				}
-			}
-		}
+		_mouseTile[1] = _mouseTile[0];
+		_drag = -1;
+	}
+	else if (KEYMANAGER->isOnceKeyUp(VK_RBUTTON))
+	{
+		_eraser==false ?	_drag = 7 : _drag=8;
 	}
 
 	else if (KEYMANAGER->isOnceKeyDown('Y'))
@@ -86,7 +104,7 @@ void MapTool::update()
 				_tiles[i].objFrameX = NULL;
 				_tiles[i].objFrameY = NULL;
 
-				_tiles[i].object = OBJ_NONE;
+				_tiles[i].object = OBJ_NULL;
 
 				InvalidateRect(_hWnd, NULL, false);
 			}
@@ -98,41 +116,63 @@ void MapTool::update()
 		_mouseTile[0].x = getMemDCPoint().x / 32;
 		_mouseTile[0].y = getMemDCPoint().y / 32;
 	}
-		
 }
 
 void MapTool::render()
 {
 	IMAGEMANAGER->render("side", UIDC);
 	IMAGEMANAGER->render("sample", UIDC, WINSIZEX - IMAGEMANAGER->findImage("sample")->getWidth()- SAMPLEX, SAMPLEY);
+	if (_select == ROOM)
+	{
+		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650 - 32, 300 - 32, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16) - 1);
+		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650 - 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
+		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+	}
+	if(_select==OBJDRAW)
+		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300, 1 + 7 * (_wall / 16), 4+ 3 * (_wall % 16));
+	if (_select == TERRAINDRAW)
+		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
 	
 	// 버튼 렉트
-	for (int i = 0; i < 7; i++)
-	{
-		//Rectangle(UIDC, _rc[i].left, _rc[i].top, _rc[i].right, _rc[i].bottom);
-	}
-	for (int i = 0; i < 7; i++)
+	//for (int i = 0; i < 10; i++)
+	//{
+	//	Rectangle(UIDC, _rc[i].left, _rc[i].top, _rc[i].right, _rc[i].bottom);
+	//}
+	for (int i = 0; i < 10; i++)
 	{
 		IMAGEMANAGER->frameRender("button", UIDC, _rc[i].left, _rc[i].top ,0,0);
 		if (_select == ROOM)
 		{
 			IMAGEMANAGER->frameRender("button", UIDC, _rc[0].left, _rc[0].top, 0, 1);
 		}
-		else if (_select == ROAD)
+		else if (_select == HROAD)
 		{
 			IMAGEMANAGER->frameRender("button", UIDC, _rc[1].left, _rc[1].top, 0, 1);
 		}
-		else if (_select == TERRAINDRAW|| _select == OBJDRAW)
+		else if (_select == VROAD)
 		{
 			IMAGEMANAGER->frameRender("button", UIDC, _rc[2].left, _rc[2].top, 0, 1);
 		}
-		else if (_select == ITEMDRAW)
+		else if (_select == TERRAINDRAW|| _select == OBJDRAW)
 		{
 			IMAGEMANAGER->frameRender("button", UIDC, _rc[3].left, _rc[3].top, 0, 1);
 		}
-		if (_select == MONSTER)
+		else if (_select == ITEMDRAW)
 		{
 			IMAGEMANAGER->frameRender("button", UIDC, _rc[4].left, _rc[4].top, 0, 1);
+		}
+		else if (_select == MONSTER)
+		{
+			IMAGEMANAGER->frameRender("button", UIDC, _rc[5].left, _rc[5].top, 0, 1);
+		}
+		if (_eraser==false)
+		{
+			IMAGEMANAGER->frameRender("button", UIDC, _rc[6].left, _rc[6].top, 0, 1);
+		}
+		else if (_eraser == true)
+		{
+			IMAGEMANAGER->frameRender("button", UIDC, _rc[7].left, _rc[7].top, 0, 1);
 		}
 	}
 
@@ -145,15 +185,17 @@ void MapTool::render()
 		DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
 	oldFont = (HFONT)SelectObject(UIDC, font);
 	DrawText(UIDC, TEXT("방"), strlen("방"), &_rc[0], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("길"), strlen("길"), &_rc[1], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("타일"), strlen("타일"), &_rc[2], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("아이템"), strlen("아이템"), &_rc[3], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("몬스터"), strlen("몬스터"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("세이브"), strlen("몬스터"), &_rc[5], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("로드"), strlen("몬터"), &_rc[6], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("가로길"), strlen("가로길"), &_rc[1], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("세로길"), strlen("세로길"), &_rc[2], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("타일"), strlen("타일"), &_rc[3], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("아이템"), strlen("몬스터"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("몬스터"), strlen("몬스터"), &_rc[5], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("벽삭제"), strlen("아몬터"), &_rc[6], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("다삭제"), strlen("아몬터"), &_rc[7], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("세이브"), strlen("세이브"), &_rc[8], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	DrawText(UIDC, TEXT("로드"), strlen("몬터"), &_rc[9], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 	SelectObject(UIDC, oldFont);
 	DeleteObject(font);
-
 
 	// 지형
 	for (int i = 0; i < TILEX * TILEY; i++)
@@ -168,7 +210,7 @@ void MapTool::render()
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
 		// 오브젝트 속성이 아니면 그리지마
-		if (_tiles[i].object == OBJ_NONE) continue;
+		if (_tiles[i].object == OBJ_NULL) continue;
 		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
 			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
 		{
@@ -177,33 +219,12 @@ void MapTool::render()
 				IMAGEMANAGER->frameRender("map", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else if (_tiles[i].object == OBJ_TREE)
 				IMAGEMANAGER->frameRender("tree", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+			else
+				IMAGEMANAGER->frameRender("samplemap", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 		}
 	}
-	int x = _mouseTile[0].x - _mouseTile[1].x;
-	int y = _mouseTile[0].y - _mouseTile[1].y;
-	if (_mouseTile[0].x < _mouseTile[1].x) x *= -1;
-	if (_mouseTile[0].y < _mouseTile[1].y) y *= -1;
-	int x2=1;
-	int y2=1;
-	if (_drag !=0)
-	{
-		for (int i = 0; i <= y; i++)
-		{
-			for (int j = 0; j <= x; j++)
-			{
-				if (_mouseTile[0].y < _mouseTile[1].y) y2=-1;
-				if (_mouseTile[0].x < _mouseTile[1].x) x2=-1;
-				IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[1].x + j*x2 + (_mouseTile[1].y + i*y2) * 100].rc.left, _tiles[_mouseTile[1].x + j * x2 + (_mouseTile[1].y + i * y2) * 100].rc.top);
-				if (_drag == 2)
-				{
 
-				}
-			}
-		}
-	}
-	if (_drag == 2)
-		_drag = 0;
-	IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y ) * 100].rc.top);
+	dragMake();
 
 	if (KEYMANAGER->isStayKeyDown(VK_TAB))
 	{
@@ -215,7 +236,7 @@ void MapTool::render()
 			char str[128];
 			sprintf_s(str, "%d,%d", i % 100, i / 100);
 			//TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
-			SetTextColor(DC, RGB(10, 10, 10));
+			SetTextColor(DC, RGB(255, 255, 255));
 			SetBkMode(DC, TRANSPARENT);
 			HFONT font, oldFont;
 			font = CreateFont(15, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
@@ -226,10 +247,17 @@ void MapTool::render()
 
 			SelectObject(DC, oldFont);
 			DeleteObject(font);
-
+		}
+			
+		/*for (int i = 0; i < TILEX * TILEY; i++)
+		{
+			Rectangle(DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
+			char str[128];
+			sprintf_s(str, "%d", i);
+			TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
 		}
 
-		/*for (int i = 0; i < SAMPLETILEX * SAMPLETILEY; i++)
+		for (int i = 0; i < SAMPLETILEX * SAMPLETILEY; i++)
 		{
 			Rectangle(UIDC, _sampleTile[i].rctile.left, _sampleTile[i].rctile.top, _sampleTile[i].rctile.right, _sampleTile[i].rctile.bottom);
 			char str[128];
@@ -239,6 +267,8 @@ void MapTool::render()
 	}
 	else
 		_canMove = true;
+
+	
 }
 
 void MapTool::save()
@@ -280,7 +310,7 @@ void MapTool::load()
 		_tiles[i].objFrameX = 0;
 		_tiles[i].objFrameY = 0;
 		_tiles[i].terrain = terrainSelect(_tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		_tiles[i].object = OBJ_NONE;
+		_tiles[i].object = OBJ_NULL;
 	}*/
 }
 
@@ -317,23 +347,23 @@ void MapTool::setup()
 		_tiles[i].objFrameX = 0;
 		_tiles[i].objFrameY = 0;
 		_tiles[i].terrain = terrainSelect(_tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		_tiles[i].object = OBJ_NONE;
+		_tiles[i].object = OBJ_NULL;
 	}
 }
 
 void MapTool::setmap()
 {
 	POINT mouse = getMemDCPoint();
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 10; i++)
 	{
 		if (PtInRect(&_rc[i], _ptMouse))
 		{
-			if (i == 5)
+			if (i == 8)
 			{
 				save();
 				break;
 			}
-			else if (i == 6)
+			else if (i == 9)
 			{
 				load();
 				break;
@@ -341,10 +371,13 @@ void MapTool::setmap()
 			else 
 			{
 				if (i == 0) _select = ROOM;
-				if (i == 1) _select = ROAD;
-				if (i == 2) _select = OBJDRAW;
-				if (i == 3) _select = ITEMDRAW;
-				if (i == 4) _select = MONSTER;
+				if (i == 1) _select = HROAD;
+				if (i == 2) _select = VROAD;
+				if (i == 3) _select = OBJDRAW;
+				if (i == 4) _select = ITEMDRAW;
+				if (i == 5) _select = MONSTER;
+				if (i == 6) _eraser = false;
+				if (i == 7) _eraser = true;
 				break;
 			}
 		}
@@ -354,58 +387,60 @@ void MapTool::setmap()
 	{
 		if (PtInRect(&_sampleTile[i].rctile, _ptMouse))
 		{
-			if (objSelect(_sampleTile[i].terrainFrameX, _sampleTile[i].terrainFrameY) == OBJ_NONE)
+			if (objSelect(_sampleTile[i].terrainFrameX, _sampleTile[i].terrainFrameY) == OBJ_NULL)
 			{
+				set_floor(i);
 				_currentTileT.x = _sampleTile[i].terrainFrameX;
 				_currentTileT.y = _sampleTile[i].terrainFrameY;
 				if (_select == TERRAINDRAW || _select == OBJDRAW)
-				_select = TERRAINDRAW;
+					_select = TERRAINDRAW;
 			}
 			else
 			{
-				_currentTileO.x = _sampleTile[i].terrainFrameX;
-				_currentTileO.y = _sampleTile[i].terrainFrameY;
+				set_wall(i);
+				//_currentTileO.x = _sampleTile[i].terrainFrameX;
+				//_currentTileO.y = _sampleTile[i].terrainFrameY;
 				if (_select == TERRAINDRAW || _select == OBJDRAW)
-				_select = OBJDRAW;
+					_select = OBJDRAW;
 			}
 			break;
 		}
 	}
 
-	if (_ptMouse.x < CAMERAX&&_ptMouse.y < CAMERAY)
-	{
-		for (int i = 0; i < TILEX * TILEY; i++)
-		{
-			if (PtInRect(&_tiles[i].rc, mouse) && _tiles[i].object != OBJ_TREE)
-			{
-				if (_select == TERRAINDRAW)
-				{
-					_tiles[i].terrainFrameX = _currentTileT.x;
-					_tiles[i].terrainFrameY = _currentTileT.y;
+	//if (_ptMouse.x < CAMERAX&&_ptMouse.y < CAMERAY)
+	//{
+	//	for (int i = 0; i < TILEX * TILEY; i++)
+	//	{
+	//		if (PtInRect(&_tiles[i].rc, mouse) && _tiles[i].object != OBJ_TREE)
+	//		{
+	//			if (_select == TERRAINDRAW)
+	//			{
+	//				_tiles[i].terrainFrameX = _currentTileT.x;
+	//				_tiles[i].terrainFrameY = _currentTileT.y;
 
-					_tiles[i].terrain = terrainSelect(_currentTileT.x, _currentTileT.y);
-				
-				}
-				else if (_select == OBJDRAW)
-				{
-					_tiles[i].objFrameX = _currentTileO.x;
-					_tiles[i].objFrameY = _currentTileO.y;
+	//				_tiles[i].terrain = terrainSelect(_currentTileT.x, _currentTileT.y);
+	//			
+	//			}
+	//			else if (_select == OBJDRAW)
+	//			{
+	//				_tiles[i].objFrameX = _currentTileO.x;
+	//				_tiles[i].objFrameY = _currentTileO.y;
 
-					_tiles[i].object = objSelect(_currentTileO.x, _currentTileO.y);
-				}
-				if (_select == ERASER)
-				{
-					_tiles[i].objFrameX = NULL;
-					_tiles[i].objFrameY = NULL;
+	//				_tiles[i].object = objSelect(_currentTileO.x, _currentTileO.y);
+	//			}
+	//			if (_select == ERASER)
+	//			{
+	//				_tiles[i].objFrameX = NULL;
+	//				_tiles[i].objFrameY = NULL;
 
-					_tiles[i].object = OBJ_NONE;
-				}
+	//				_tiles[i].object = OBJ_NULL;
+	//			}
 
-				InvalidateRect(_hWnd, NULL, false);
-				break;
-			}
-		}
-	}
+	//			InvalidateRect(_hWnd, NULL, false);
+	//			break;
+	//		}
+	//	}
+	//}
 }
 
 TERRAIN MapTool::terrainSelect(int FrameX, int FrameY)
@@ -521,7 +556,7 @@ OBJECT MapTool::objSelect(int FrameX, int FrameY)
 	//if (FrameX == 8 && FrameY == 24) return OBJ_GROUND;
 
 
-	return OBJ_NONE;
+	return OBJ_NULL;
 }
 
 void MapTool::setTree()
@@ -530,7 +565,7 @@ void MapTool::setTree()
 	{
 		if (_tiles[i].object == OBJ_TREE)
 		{
-			_tiles[i].object = OBJ_NONE;
+			_tiles[i].object = OBJ_NULL;
 		}
 	}
 
@@ -538,44 +573,28 @@ void MapTool::setTree()
 	{
 		for (int j = 0; j <  1; j++)
 		{
-			_tiles[i*100+j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-			_tiles[i * 100 + j].object = OBJ_TREE;
-			_tiles[i * 100 + j].position = POS_5;
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
 		}
 	}
 	for (int i = 0; i < 100; i++)	//오른쪽이빈나무
 	{
 		for (int j = 1; j < 2; j++)
 		{
-			_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-			_tiles[i * 100 + j].object = OBJ_TREE;
-			_tiles[i * 100 + j].position = POS_6;
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_6);
 		}
 	}
 	for (int i = 0; i < 100; i++)	//왼쪽이빈나무
 	{
 		for (int j = _currentXY.x+2; j < _currentXY.x+3; j++)
 		{
-			_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-			_tiles[i * 100 + j].object = OBJ_TREE;
-			_tiles[i * 100 + j].position = POS_4;
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_4);
 		}
 	}
 	for (int i = 0; i <100; i++)
 	{
 		for (int j = _currentXY.x+3; j < 100; j++)
 		{
-			_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-			_tiles[i * 100 + j].object = OBJ_TREE;
-			_tiles[i * 100 + j].position = POS_5;
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
 		}
 	}
 
@@ -584,50 +603,35 @@ void MapTool::setTree()
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-			_tiles[i * 100 + j].object = OBJ_TREE;
-			_tiles[i * 100 + j].position = POS_5;
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
 		}
 	}
 	for (int i = 4; i <5; i++)		//아래쪽이빈나무
 	{
 		for (int j = 1; j < 100; j++)
 		{
-			_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-			_tiles[i * 100 + j].object = OBJ_TREE;
 			if(j<_currentXY.x+2)
-				_tiles[i * 100 + j].position = POS_8;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_8);
 			else
-				_tiles[i * 100 + j].position = POS_5;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
 		}
 	}
 	for (int i = _currentXY.y+5; i <_currentXY.y+6; i++)		//윗쪽이빈나무
 	{
 		for (int j = 1; j < 100; j++)
 		{
-			_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
 			_tiles[i * 100 + j].object = OBJ_TREE;
 			if (j<_currentXY.x + 2)
-				_tiles[i * 100 + j].position = POS_2;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_2);
 			else
-				_tiles[i * 100 + j].position = POS_5;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
 		}
 	}
 	for (int i = _currentXY.y+6; i <100; i++)
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-			_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-			_tiles[i * 100 + j].object = OBJ_TREE;
-			_tiles[i * 100 + j].position = POS_5;
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
 		}
 	}
 
@@ -637,35 +641,19 @@ void MapTool::setTree()
 		{
 			if (i == 4 && j == 1)		//오른쪽아래가빈나무
 			{
-				_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-				_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-				_tiles[i * 100 + j].object = OBJ_TREE;
-				_tiles[i * 100 + j].position = POS_11;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_11);
 			}
 			if (i == 4 && j == _currentXY.x+2)		//왼쪽아래가빈나무
 			{
-				_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-				_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-				_tiles[i * 100 + j].object = OBJ_TREE;
-				_tiles[i * 100 + j].position = POS_12;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_12);
 			}
 			if (i == _currentXY.y+5 && j ==1)		//오른쪽위가빈나무
 			{
-				_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-				_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-				_tiles[i * 100 + j].position = POS_14;
-
-				_tiles[i * 100 + j].object = OBJ_TREE;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_14);
 			}
 			if (i == _currentXY.y + 5 && j == _currentXY.x + 2)		//왼쪽위가빈나무
 			{
-				_tiles[i * 100 + j].objFrameX = _currentTileO.x;
-				_tiles[i * 100 + j].objFrameY = _currentTileO.y;
-
-				_tiles[i * 100 + j].object = OBJ_TREE;
-				_tiles[i * 100 + j].position = POS_15;
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_15);
 			}
 		}
 	}
@@ -676,46 +664,416 @@ void MapTool::setTree()
 			switch (_tiles[i].position)
 			{
 			case POS_2:
-				_tiles[i].objFrameX = 1+7*(_tree/11);
-				_tiles[i].objFrameY =3+3*(_tree%11);
+				setOFrame(i, 1 + 7 * (_tree / 11), 3 + 3 * (_tree % 11));
 				break;
 			case POS_4:
-				_tiles[i].objFrameX =  7 * (_tree / 11);
-				_tiles[i].objFrameY = 4 + 3 * (_tree % 11);
+				setOFrame(i, 7 * (_tree / 11), 4 + 3 * (_tree % 11));
 				break;
 			case POS_5:
-				_tiles[i].objFrameX = 1+7 * (_tree / 11);
-				_tiles[i].objFrameY = 4 + 3 * (_tree % 11);
+				setOFrame(i, 1 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
 				break;
 			case POS_6:
-				_tiles[i].objFrameX = 2 + 7 * (_tree / 11);
-				_tiles[i].objFrameY = 4 + 3 * (_tree % 11);
+				setOFrame(i, 2 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
 				break;
 			case POS_8:
-				_tiles[i].objFrameX = 1 + 7 * (_tree / 11);
-				_tiles[i].objFrameY = 5 + 3 * (_tree % 11);
+				setOFrame(i, 1 + 7 * (_tree / 11), 5 + 3 * (_tree % 11));
 				break;
 			case POS_11:
-				_tiles[i].objFrameX = 4 + 7 * (_tree / 11);
-				_tiles[i].objFrameY = 3 + 3 * (_tree % 11);
+				setOFrame(i, 4 + 7 * (_tree / 11), 3 + 3 * (_tree % 11));
 				break;
 			case POS_12:
-				_tiles[i].objFrameX = 5 + 7 * (_tree / 11);
-				_tiles[i].objFrameY = 3 + 3 * (_tree % 11);
+				setOFrame(i, 5 + 7 * (_tree / 11), 3 + 3 * (_tree % 11));
+
 				break;
 			case POS_14:
-				_tiles[i].objFrameX = 4 + 7 * (_tree / 11);
-				_tiles[i].objFrameY = 4 + 3 * (_tree % 11);
+				setOFrame(i, 4 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
 				break;
 			case POS_15:
-				_tiles[i].objFrameX = 5 + 7 * (_tree / 11);
-				_tiles[i].objFrameY = 4 + 3 * (_tree % 11);
+				setOFrame(i, 5 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
 				break;
 			default:
 				break;
 			}
 		}
 	}
+}
+
+void MapTool::setWall(int i)
+{
+	if (_tiles[i].object == OBJ_WALL)
+	{
+		switch (_tiles[i].position)
+		{
+		case POS_1:
+			setOFrame(i, 0 + 7 * (_wall / 16), 3 + 3 * (_wall % 16));
+			break;
+		case POS_2:
+			setOFrame(i, 1 + 7 * (_wall / 16), 3 + 3 * (_wall % 16));
+			break;
+		case POS_3:
+			setOFrame(i, 2 + 7 * (_wall / 16), 3 + 3 * (_wall % 16));
+			break;
+		case POS_4:
+			setOFrame(i, 0 + 7 * (_wall / 16), 4 + 3 * (_wall % 16));
+			break;
+		case POS_5:
+			setOFrame(i, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16));
+			break;
+		case POS_7:
+			setOFrame(i, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16));
+			break;
+		case POS_9:
+			setOFrame(i, 2 + 7 * (_wall / 16), 5 + 3 * (_wall % 16));
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void MapTool::setFloor(int i)
+{
+	if (_tiles[i].terrain == TR_FLOOR)
+	{
+		switch (_tiles[i].position)
+		{
+		case POS_1:
+			setTFrame(i, 20 + 7 * (_floor /16), 3 + 3 * (_floor %16));
+			break;
+		case POS_2:
+			setTFrame(i, 21 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+			break;
+		case POS_3:
+			setTFrame(i, 22 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+			break;
+		case POS_4:
+			setTFrame(i, 20 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			break;
+		case POS_5:
+			setTFrame(i, 21 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			break;
+		case POS_6:
+			setTFrame(i, 22 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			break;
+		case POS_7:
+			setTFrame(i, 20 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			break;
+		case POS_8:
+			setTFrame(i, 21 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			break;
+		case POS_9:
+			setTFrame(i, 22 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			break;
+		case POS_10:
+			setTFrame(i, 23 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+			break;
+		case POS_14:
+			setTFrame(i, 23 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			break;
+		case POS_15:
+			setTFrame(i, 24 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			break;
+		case POS_16:
+			setTFrame(i, 25 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			break;
+		case POS_17:
+			setTFrame(i, 26 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			break;
+		case POS_18:
+			setTFrame(i, 23 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void MapTool::set_wall(int i)
+{
+int num = 0;
+
+	for (int l = 0; l < 3; l++)
+	{
+		for (int k = 0; k < 12; k += 3)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				if (_sampleTile[i].terrainFrameX == j && _sampleTile[i].terrainFrameY == k + l)
+					_wall = j + num;
+			}
+			num += 4;
+		}
+	}
+}
+
+void MapTool::set_floor(int i)
+{
+	int num = 0;
+
+	for (int k = 0; k < 7; k++)
+	{
+		for (int j = 5; j < 9; j++)
+		{
+			if (_sampleTile[i].terrainFrameX == j && _sampleTile[i].terrainFrameY == k)
+				_floor = j-5 + num;
+		}
+		num += 4;
+	}
+}
+
+void MapTool::dragMake()
+{
+	int	temp;
+	int count=0;
+
+	tagCurrentTile LT = _mouseTile[1];
+	tagCurrentTile RB = _mouseTile[0];
+	
+	if (RB.y < LT.y)
+	{
+		temp = RB.y;
+		RB.y = LT.y;
+		LT.y = temp;
+	}
+	if (RB.x < LT.x)
+	{
+		temp = RB.x;
+		RB.x = LT.x;
+		LT.x = temp;
+	}
+
+	tagCurrentTile LT2 = LT;
+	tagCurrentTile RB2 = RB;
+
+	int x = RB.x - LT.x;
+	int y = RB.y - LT.y;
+	
+	if (_drag != 0 )
+	{
+		for (int i = 0; i <= y; i++)
+		{
+			for (int j = 0; j <= x; j++)
+			{
+				temp = LT.x + j + (LT.y + i) * 100;
+				if(checkRockTile(temp)==0)
+					count++;
+				IMAGEMANAGER->findImage("tile")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
+				if (_tiles[temp].object == OBJ_TREE || _drag == -1 || _drag == 7 || _drag == 8)
+				{
+					IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
+					if (_tiles[temp].object == OBJ_TREE)
+					{
+						if (_tiles[temp].position == POS_6)
+							LT2.x = 2;
+						else if (_tiles[temp].position == POS_8)
+							LT2.y = 5;
+						else if (_tiles[temp].position == POS_2)
+							RB2.y = _currentXY.y+4;
+						else if (_tiles[temp].position == POS_4)
+							RB2.x = _currentXY.x+1;
+					}
+				}
+			}
+		}
+
+		x = RB2.x - LT2.x;
+		y = RB2.y - LT2.y;
+
+		for (int i = 0; i <= y; i++)
+		{
+			for (int j = 0; j <= x; j++)
+			{
+				temp = LT2.x + j + (LT2.y + i) * 100;
+				if(_rock[1] - count<0)
+					IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
+				else
+				{
+					if (_drag == 2 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					{
+						setPosition(temp, TR_FLOOR, OBJ_NULL, POS_5);
+						if (j == 0 || j == x)
+						{
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_4);
+						}
+						else if (i == 0 || i == y)
+						{
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_2);
+						}
+						else if (i == 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_2);
+						}
+						else if (i == y - 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_8);
+						}
+						else if (j == 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_4);
+						}
+						else if (j == x - 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_6);
+						}
+
+						if (j == 0 && i == 0)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_1);
+						else if (j == 0 && i == y)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_7);
+						else if (j == x && i == 0)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_3);
+						else if (j == x && i == y)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_9);
+						if (x != 1 && y != 1)
+						{
+							if (j == 1 && i == 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_1);
+							else if (j == 1 && i == y - 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_7);
+							else if (j == x - 1 && i == 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_3);
+							else if (j == x - 1 && i == y - 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_9);
+						}
+						if (x == 2 && j == 1 && i != 0 && i != y)
+						{
+							if (i == 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_10);
+							else if (i == y - 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_18);
+							else
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_14);
+						}
+						if (y == 2 && i == 1 && j != 0 && j != x)
+						{
+							if (j == 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_15);
+							else if (j == x - 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_17);
+							else
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_16);
+						}
+						/*		if (x == 0 && j == 1 && i != 0 && i != y)
+								{
+									if (i == 0)
+										setPosition(temp, TR_NULL, OBJ_WALL, POS_10);
+									else if (i == y)
+										setPosition(temp, TR_NULL, OBJ_WALL, POS_18);
+									else
+										setPosition(temp, TR_NULL, OBJ_WALL, POS_14);
+								}
+								if (y == 0 && i == 1 && j != 0 && j != x)
+								{
+									if (j == 0)
+										setPosition(temp, TR_NULL, OBJ_WALL, POS_15);
+									else if (j == x)
+										setPosition(temp, TR_NULL, OBJ_WALL, POS_17);
+									else
+										setPosition(temp, TR_NULL, OBJ_WALL, POS_16);
+								}*/
+						if (_mouseTile[0].y == _mouseTile[1].y&&_mouseTile[0].x == _mouseTile[1].x)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_5);
+
+						setWall(temp);
+						setFloor(temp);
+					}
+					if (_drag == 3 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					{
+						//길 추가요망
+						setWall(temp);
+						setFloor(temp);
+					}
+					if (_drag == 4 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					{
+						//길 추가요망
+						setWall(temp);
+						setFloor(temp);
+					}
+					if (_drag == 5 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					{
+						_tiles[temp].terrain = TR_FLOOR;
+						_tiles[temp].position = POS_5;
+						setFloor(temp);
+					}
+					if (_drag == 6 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					{
+						_tiles[temp].object = OBJ_WALL;
+						_tiles[temp].position = POS_5;
+						setWall(temp);
+					}
+				}
+				if (_drag == 7 && _tiles[temp].object != OBJ_TREE)
+				{
+					_tiles[temp].objFrameX = NULL;
+					_tiles[temp].objFrameY = NULL;
+
+					_tiles[temp].object = OBJ_NULL;
+
+					InvalidateRect(_hWnd, NULL, false);
+				}
+				if (_drag == 8&& _tiles[temp].object!=OBJ_TREE)
+				{
+					_tiles[temp].terrainFrameX = 9;
+					_tiles[temp].terrainFrameY = 0;
+					_tiles[temp].objFrameX = NULL;
+					_tiles[temp].objFrameY = NULL;
+
+					_tiles[temp].terrain =TR_NULL;
+					_tiles[temp].object = OBJ_NULL;
+
+					InvalidateRect(_hWnd, NULL, false);
+				}
+			}
+		}
+	}
+	if (_drag != 1 && _drag != -1)
+	{
+		_drag = 0;
+		checkRock();
+	}
+
+	if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_TREE || _drag == -1|| _rock[1] - count<0)
+		IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
+	else
+		IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
+}
+
+
+void MapTool::setPosition(int i, TERRAIN ter, OBJECT obj, POS pos)
+{
+	_tiles[i].terrain = ter;
+	_tiles[i].object = obj;
+	_tiles[i].position = pos;
+}
+
+void MapTool::setOFrame(int i, int x, int y)
+{
+	_tiles[i].objFrameX = x;
+	_tiles[i].objFrameY = y;
+}
+
+void MapTool::setTFrame(int i, int x, int y)
+{
+	_tiles[i].terrainFrameX = x;
+	_tiles[i].terrainFrameY = y;
+}
+
+void MapTool::checkRock()
+{
+	int count=0;
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		if ((_tiles[i].object != OBJ_NULL || _tiles[i].terrain != TR_NULL)&& _tiles[i].object != OBJ_TREE)	count++;
+	}
+	_rock[1] = _rock[0] - count;
+}
+
+int MapTool::checkRockTile(int i)
+{
+	if ((_tiles[i].object != OBJ_NULL || _tiles[i].terrain != TR_NULL) && _tiles[i].object != OBJ_TREE)
+		return 1;
+	else 
+		return 0;
 }
 
 MapTool::MapTool(){}

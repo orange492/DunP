@@ -93,6 +93,22 @@ void playGround::render(void)
 	//->render(UIDC, 54, 240, CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
 	CAMERAMANAGER->cameraRender(UIDC);
 	IMAGEMANAGER->render("UI", UIDC);
+
+	char str[128];
+	SetTextColor(UIDC, RGB(255, 255, 255));
+	SetBkMode(UIDC, TRANSPARENT);
+	HFONT font, oldFont;
+	font = CreateFont(30, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+		OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+		DEFAULT_PITCH | FF_SWISS, TEXT("HY¾èÀº»ù¹°M"));
+	oldFont = (HFONT)SelectObject(UIDC, font);
+	wsprintf(str, "%d / %d", _mapTool->getRock(1), _mapTool->getRock(0));
+	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1470,25,200,50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	wsprintf(str, "%d / %d", _mapTool->getFood(1), _mapTool->getFood(0));
+	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1710,25,200,50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	SelectObject(UIDC, oldFont);
+	DeleteObject(font);
+
 	if (_mapTool->getCanMove() == true)
 	IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);
 	CAMERAMANAGER->render(this->getBackBuffer());

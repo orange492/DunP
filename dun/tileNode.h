@@ -31,8 +31,8 @@
 #define SAMPLETILEY 12
 
 //»ùÇÃÅ¸ÀÏ À§Ä¡
-#define SAMPLEX 150		//»¬¼À
-#define SAMPLEY 500		//µ¡¼À
+#define SAMPLEX 120		//»¬¼À
+#define SAMPLEY 450		//µ¡¼À
 
 // ÂïÈ÷´Â Å¸ÀÏ¼Â
 #define MAPTILEX 41
@@ -50,7 +50,7 @@ enum TERRAIN
 // ¿ÀºêÁ§Æ®
 enum OBJECT
 {
-	OBJ_NONE, 	OBJ_WALL, OBJ_TREE, OBJ_TRAP,	OBJ_ETC
+	OBJ_NULL, 	OBJ_WALL, OBJ_TREE, OBJ_TRAP,	OBJ_ETC
 };
 
 // Æ÷Áö¼Ç Á¤ÀÇ
