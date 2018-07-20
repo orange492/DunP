@@ -2,15 +2,17 @@
 #include "MapTool.h"
 
 //지우개, 전체지우개, 그리개 - 나무 막아둠
-//바위갯수 넘었을 때, 나무걸렸을때
-
+//바위갯수 넘었을 때, 나무걸렸을때 빨강
 //있던 벽에 연결하면  자연스럽게 하기
+//그냥타일 까는 것
+//가로세로이미지만들기
+//가로세로길 추가
+
 //맵 저장슬롯
 //던전입구
-//그냥타일 까는 것
 
-//가로세로이미지만들기먼저!
-//가로세로길 추가
+//오브젝트그리기-사라지는거,덮을때 빨개지는거 헤결하자!
+
 
 HRESULT MapTool::init()
 {
@@ -41,6 +43,7 @@ HRESULT MapTool::init()
 	{
 		setTFrame(i, 9, 0);
 		_tiles[i].terrain = TR_NULL;
+		_tiles[i].object = OBJ_NULL;
 	}
 	setTree();
 	
@@ -84,38 +87,38 @@ void MapTool::update()
 		_eraser==false ?	_drag = 7 : _drag=8;
 	}
 
-	else if (KEYMANAGER->isOnceKeyDown('Y'))
-	{
-		for (int i = 0; i < TILEX * TILEY; i++)
-		{
-			_tiles[i].terrainFrameX = _currentTileT.x;
-			_tiles[i].terrainFrameY = _currentTileT.y;
+	//else if (KEYMANAGER->isOnceKeyDown('Y'))
+	//{
+	//	for (int i = 0; i < TILEX * TILEY; i++)
+	//	{
+	//		_tiles[i].terrainFrameX = _currentTileT.x;
+	//		_tiles[i].terrainFrameY = _currentTileT.y;
 
-			_tiles[i].terrain = terrainSelect(_currentTileT.x, _currentTileT.y);
-		}
-	}
+	//		_tiles[i].terrain = terrainSelect(_currentTileT.x, _currentTileT.y);
+	//	}
+	//}
 
-	else if (KEYMANAGER->isOnceKeyDown('U'))
-	{
-		for (int i = 0; i < TILEX * TILEY; i++)
-		{
-			if (_tiles[i].object != OBJ_TREE)
-			{
-				_tiles[i].objFrameX = NULL;
-				_tiles[i].objFrameY = NULL;
+	//else if (KEYMANAGER->isOnceKeyDown('U'))
+	//{
+	//	for (int i = 0; i < TILEX * TILEY; i++)
+	//	{
+	//		if (_tiles[i].object != OBJ_TREE)
+	//		{
+	//			_tiles[i].objFrameX = NULL;
+	//			_tiles[i].objFrameY = NULL;
 
-				_tiles[i].object = OBJ_NULL;
+	//			_tiles[i].object = OBJ_NULL;
 
-				InvalidateRect(_hWnd, NULL, false);
-			}
-		}
-	}
+	//			InvalidateRect(_hWnd, NULL, false);
+	//		}
+	//	}
+	//}
 
-	for (int i = 0; i < TILEX * TILEY; i++)
-	{
-		_mouseTile[0].x = getMemDCPoint().x / 32;
-		_mouseTile[0].y = getMemDCPoint().y / 32;
-	}
+	/*for (int i = 0; i < TILEX * TILEY; i++)
+	{*/
+	_mouseTile[0].x = getMemDCPoint().x / 32;
+	_mouseTile[0].y = getMemDCPoint().y / 32;
+	//}
 }
 
 void MapTool::render()
@@ -124,15 +127,45 @@ void MapTool::render()
 	IMAGEMANAGER->render("sample", UIDC, WINSIZEX - IMAGEMANAGER->findImage("sample")->getWidth()- SAMPLEX, SAMPLEY);
 	if (_select == ROOM)
 	{
-		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650 - 32, 300 - 32, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16) - 1);
-		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650 - 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
-		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+		fdraw("map",UIDC, 1650 - 32, 300 - 32, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650 - 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
+		fdraw("map",UIDC, 1650 + 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
+		fdraw("map",UIDC, 1650 + 32, 300-32, 3 + 7 * (_wall / 16) - 1, 3 + 3 * (_wall % 16));
+		fdraw("map",UIDC, 1650 + 32, 300+32, 3 + 7 * (_wall / 16) - 1, 5 + 3 * (_wall % 16));
+		fdraw("map",UIDC, 1650, 300+32, 2 + 7 * (_wall / 16) - 1, 3 + 3 * (_wall % 16));
+		fdraw("map",UIDC, 1650-32, 300+32, 1 + 7 * (_wall / 16) - 1, 5 + 3 * (_wall % 16));
+		fdraw("map",UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+	}
+	if (_select == HROAD)
+	{
+		fdraw("map",UIDC, 1650-32, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650+32, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650-32, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650+32, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+		fdraw("map",UIDC, 1650-32, 300, 24 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+		fdraw("map",UIDC, 1650, 300, 25 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+		fdraw("map",UIDC, 1650+32, 300, 26 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+	}
+	if (_select == VROAD)
+	{
+		fdraw("map", UIDC, 1650 - 32, 300 - 32, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+		fdraw("map", UIDC, 1650-32, 300, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+		fdraw("map", UIDC, 1650-32, 300 + 32, + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+		fdraw("map", UIDC, 1650 + 32, 300 - 32, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+		fdraw("map", UIDC, 1650+32, 300, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+		fdraw("map", UIDC, 1650+32, 300 + 32, + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+
+		fdraw("map", UIDC, 1650 , 300-32, 23 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+		fdraw("map", UIDC, 1650, 300, 23 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+		fdraw("map", UIDC, 1650 , 300+32, 23 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
 	}
 	if(_select==OBJDRAW)
-		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300, 1 + 7 * (_wall / 16), 4+ 3 * (_wall % 16));
+		fdraw("map",UIDC, 1650, 300, 1 + 7 * (_wall / 16), 4+ 3 * (_wall % 16));
 	if (_select == TERRAINDRAW)
-		IMAGEMANAGER->findImage("map")->frameRender(UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+		fdraw("map",UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
 	
 	// 버튼 렉트
 	//for (int i = 0; i < 10; i++)
@@ -141,38 +174,38 @@ void MapTool::render()
 	//}
 	for (int i = 0; i < 10; i++)
 	{
-		IMAGEMANAGER->frameRender("button", UIDC, _rc[i].left, _rc[i].top ,0,0);
+		fdraw("button",UIDC, _rc[i].left, _rc[i].top ,0,0);
 		if (_select == ROOM)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[0].left, _rc[0].top, 0, 1);
+			fdraw("button",UIDC, _rc[0].left, _rc[0].top, 0, 1);
 		}
 		else if (_select == HROAD)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[1].left, _rc[1].top, 0, 1);
+			fdraw("button",UIDC, _rc[1].left, _rc[1].top, 0, 1);
 		}
 		else if (_select == VROAD)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[2].left, _rc[2].top, 0, 1);
+			fdraw("button",UIDC, _rc[2].left, _rc[2].top, 0, 1);
 		}
 		else if (_select == TERRAINDRAW|| _select == OBJDRAW)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[3].left, _rc[3].top, 0, 1);
+			fdraw("button",UIDC, _rc[3].left, _rc[3].top, 0, 1);
 		}
 		else if (_select == ITEMDRAW)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[4].left, _rc[4].top, 0, 1);
+			fdraw("button",UIDC, _rc[4].left, _rc[4].top, 0, 1);
 		}
 		else if (_select == MONSTER)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[5].left, _rc[5].top, 0, 1);
+			fdraw("button",UIDC, _rc[5].left, _rc[5].top, 0, 1);
 		}
 		if (_eraser==false)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[6].left, _rc[6].top, 0, 1);
+			fdraw("button",UIDC, _rc[6].left, _rc[6].top, 0, 1);
 		}
 		else if (_eraser == true)
 		{
-			IMAGEMANAGER->frameRender("button", UIDC, _rc[7].left, _rc[7].top, 0, 1);
+			fdraw("button",UIDC, _rc[7].left, _rc[7].top, 0, 1);
 		}
 	}
 
@@ -202,7 +235,7 @@ void MapTool::render()
 	{
 		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
 			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
-		IMAGEMANAGER->frameRender("map", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
+		fdraw("map",DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
 		//if(i == 444)
 	}
 
@@ -216,7 +249,7 @@ void MapTool::render()
 		{
 
 			if (_tiles[i].object == OBJ_WALL)
-				IMAGEMANAGER->frameRender("map", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+				fdraw("map",DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else if (_tiles[i].object == OBJ_TREE)
 				IMAGEMANAGER->frameRender("tree", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
@@ -573,28 +606,28 @@ void MapTool::setTree()
 	{
 		for (int j = 0; j <  1; j++)
 		{
-			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5,_tree);
 		}
 	}
 	for (int i = 0; i < 100; i++)	//오른쪽이빈나무
 	{
 		for (int j = 1; j < 2; j++)
 		{
-			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_6);
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_6, _tree);
 		}
 	}
 	for (int i = 0; i < 100; i++)	//왼쪽이빈나무
 	{
 		for (int j = _currentXY.x+2; j < _currentXY.x+3; j++)
 		{
-			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_4);
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_4, _tree);
 		}
 	}
 	for (int i = 0; i <100; i++)
 	{
 		for (int j = _currentXY.x+3; j < 100; j++)
 		{
-			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5, _tree);
 		}
 	}
 
@@ -603,7 +636,7 @@ void MapTool::setTree()
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5, _tree);
 		}
 	}
 	for (int i = 4; i <5; i++)		//아래쪽이빈나무
@@ -611,9 +644,9 @@ void MapTool::setTree()
 		for (int j = 1; j < 100; j++)
 		{
 			if(j<_currentXY.x+2)
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_8);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_8, _tree);
 			else
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5, _tree);
 		}
 	}
 	for (int i = _currentXY.y+5; i <_currentXY.y+6; i++)		//윗쪽이빈나무
@@ -622,16 +655,16 @@ void MapTool::setTree()
 		{
 			_tiles[i * 100 + j].object = OBJ_TREE;
 			if (j<_currentXY.x + 2)
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_2);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_2, _tree);
 			else
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5, _tree);
 		}
 	}
 	for (int i = _currentXY.y+6; i <100; i++)
 	{
 		for (int j = 0; j < 100; j++)
 		{
-			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5);
+			setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_5, _tree);
 		}
 	}
 
@@ -641,19 +674,19 @@ void MapTool::setTree()
 		{
 			if (i == 4 && j == 1)		//오른쪽아래가빈나무
 			{
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_11);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_11, _tree);
 			}
 			if (i == 4 && j == _currentXY.x+2)		//왼쪽아래가빈나무
 			{
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_12);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_12, _tree);
 			}
 			if (i == _currentXY.y+5 && j ==1)		//오른쪽위가빈나무
 			{
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_14);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_14, _tree);
 			}
 			if (i == _currentXY.y + 5 && j == _currentXY.x + 2)		//왼쪽위가빈나무
 			{
-				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_15);
+				setPosition(i * 100 + j, TR_NULL, OBJ_TREE, POS_15, _tree);
 			}
 		}
 	}
@@ -664,32 +697,32 @@ void MapTool::setTree()
 			switch (_tiles[i].position)
 			{
 			case POS_2:
-				setOFrame(i, 1 + 7 * (_tree / 11), 3 + 3 * (_tree % 11));
+				setOFrame(i, 1 + 7 * (_tiles[i].type / 11), 3 + 3 * (_tiles[i].type % 11));
 				break;
 			case POS_4:
-				setOFrame(i, 7 * (_tree / 11), 4 + 3 * (_tree % 11));
+				setOFrame(i, 7 * (_tiles[i].type / 11), 4 + 3 * (_tiles[i].type % 11));
 				break;
 			case POS_5:
-				setOFrame(i, 1 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
+				setOFrame(i, 1 + 7 * (_tiles[i].type / 11), 4 + 3 * (_tiles[i].type % 11));
 				break;
 			case POS_6:
-				setOFrame(i, 2 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
+				setOFrame(i, 2 + 7 * (_tiles[i].type / 11), 4 + 3 * (_tiles[i].type % 11));
 				break;
 			case POS_8:
-				setOFrame(i, 1 + 7 * (_tree / 11), 5 + 3 * (_tree % 11));
+				setOFrame(i, 1 + 7 * (_tiles[i].type / 11), 5 + 3 * (_tiles[i].type % 11));
 				break;
 			case POS_11:
-				setOFrame(i, 4 + 7 * (_tree / 11), 3 + 3 * (_tree % 11));
+				setOFrame(i, 4 + 7 * (_tiles[i].type / 11), 3 + 3 * (_tiles[i].type % 11));
 				break;
 			case POS_12:
-				setOFrame(i, 5 + 7 * (_tree / 11), 3 + 3 * (_tree % 11));
+				setOFrame(i, 5 + 7 * (_tiles[i].type / 11), 3 + 3 * (_tiles[i].type % 11));
 
 				break;
 			case POS_14:
-				setOFrame(i, 4 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
+				setOFrame(i, 4 + 7 * (_tiles[i].type / 11), 4 + 3 * (_tiles[i].type % 11));
 				break;
 			case POS_15:
-				setOFrame(i, 5 + 7 * (_tree / 11), 4 + 3 * (_tree % 11));
+				setOFrame(i, 5 + 7 * (_tiles[i].type / 11), 4 + 3 * (_tiles[i].type % 11));
 				break;
 			default:
 				break;
@@ -705,25 +738,52 @@ void MapTool::setWall(int i)
 		switch (_tiles[i].position)
 		{
 		case POS_1:
-			setOFrame(i, 0 + 7 * (_wall / 16), 3 + 3 * (_wall % 16));
+			setOFrame(i, 0 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_2:
-			setOFrame(i, 1 + 7 * (_wall / 16), 3 + 3 * (_wall % 16));
+			setOFrame(i, 1 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_3:
-			setOFrame(i, 2 + 7 * (_wall / 16), 3 + 3 * (_wall % 16));
+			setOFrame(i, 2 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_4:
-			setOFrame(i, 0 + 7 * (_wall / 16), 4 + 3 * (_wall % 16));
+			setOFrame(i, 0 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_5:
-			setOFrame(i, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16));
+			setOFrame(i, 1 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_7:
-			setOFrame(i, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16));
+			setOFrame(i, 0 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_9:
-			setOFrame(i, 2 + 7 * (_wall / 16), 5 + 3 * (_wall % 16));
+			setOFrame(i, 2 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_10:
+			setOFrame(i, 3 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_11:
+			setOFrame(i, 4 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_12:
+			setOFrame(i, 5 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_13:
+			setOFrame(i, 3 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_14:
+			setOFrame(i, 4 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_15:
+			setOFrame(i, 5 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_16:
+			setOFrame(i, 3 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_17:
+			setOFrame(i, 4 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_18:
+			setOFrame(i, 5 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
 			break;
 		default:
 			break;
@@ -738,49 +798,52 @@ void MapTool::setFloor(int i)
 		switch (_tiles[i].position)
 		{
 		case POS_1:
-			setTFrame(i, 20 + 7 * (_floor /16), 3 + 3 * (_floor %16));
+			setTFrame(i, 20 + 7 * (_tiles[i].type /16), 3 + 3 * (_tiles[i].type %16));
 			break;
 		case POS_2:
-			setTFrame(i, 21 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+			setTFrame(i, 21 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_3:
-			setTFrame(i, 22 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+			setTFrame(i, 22 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_4:
-			setTFrame(i, 20 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			setTFrame(i, 20 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_5:
-			setTFrame(i, 21 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			setTFrame(i, 21 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_6:
-			setTFrame(i, 22 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			setTFrame(i, 22 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_7:
-			setTFrame(i, 20 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			setTFrame(i, 20 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_8:
-			setTFrame(i, 21 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			setTFrame(i, 21 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_9:
-			setTFrame(i, 22 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			setTFrame(i, 22 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_10:
-			setTFrame(i, 23 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+			setTFrame(i, 23 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
+			break;
+		case POS_12:
+			setTFrame(i, 25 + 7 * (_tiles[i].type / 16), 3 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_14:
-			setTFrame(i, 23 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			setTFrame(i, 23 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_15:
-			setTFrame(i, 24 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			setTFrame(i, 24 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_16:
-			setTFrame(i, 25 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			setTFrame(i, 25 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_17:
-			setTFrame(i, 26 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			setTFrame(i, 26 + 7 * (_tiles[i].type / 16), 4 + 3 * (_tiles[i].type % 16));
 			break;
 		case POS_18:
-			setTFrame(i, 23 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			setTFrame(i, 23 + 7 * (_tiles[i].type / 16), 5 + 3 * (_tiles[i].type % 16));
 			break;
 		default:
 			break;
@@ -825,6 +888,7 @@ void MapTool::dragMake()
 {
 	int	temp;
 	int count=0;
+	int count2=0;
 
 	tagCurrentTile LT = _mouseTile[1];
 	tagCurrentTile RB = _mouseTile[0];
@@ -848,6 +912,11 @@ void MapTool::dragMake()
 	int x = RB.x - LT.x;
 	int y = RB.y - LT.y;
 	
+	if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_TREE || _drag == -1 || _rock[1] - count<0)
+		IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
+	else
+		IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
+
 	if (_drag != 0 )
 	{
 		for (int i = 0; i <= y; i++)
@@ -855,8 +924,17 @@ void MapTool::dragMake()
 			for (int j = 0; j <= x; j++)
 			{
 				temp = LT.x + j + (LT.y + i) * 100;
-				if(checkRockTile(temp)==0)
-					count++;
+				if (_select==OBJDRAW)
+				{
+					if (_tiles[temp].terrain == TR_FLOOR|| _tiles[temp].object==OBJ_WALL) continue;
+					if (_tiles[temp - 1].terrain == TR_FLOOR|| _tiles[temp + 1].terrain == TR_FLOOR || _tiles[temp - 100].terrain == TR_FLOOR || _tiles[temp + 100].terrain == TR_FLOOR
+						|| _tiles[temp - 101].terrain == TR_FLOOR || _tiles[temp - 99].terrain == TR_FLOOR || _tiles[temp +101].terrain == TR_FLOOR || _tiles[temp +99].terrain == TR_FLOOR) count++;
+				}
+				else
+				{
+					if (checkRockTile(temp) == 0)
+						count++;
+				}
 				IMAGEMANAGER->findImage("tile")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
 				if (_tiles[temp].object == OBJ_TREE || _drag == -1 || _drag == 7 || _drag == 8)
 				{
@@ -868,13 +946,14 @@ void MapTool::dragMake()
 						else if (_tiles[temp].position == POS_8)
 							LT2.y = 5;
 						else if (_tiles[temp].position == POS_2)
-							RB2.y = _currentXY.y+4;
+							RB2.y = _currentXY.y + 4;
 						else if (_tiles[temp].position == POS_4)
-							RB2.x = _currentXY.x+1;
+							RB2.x = _currentXY.x + 1;
 					}
 				}
 			}
 		}
+		
 
 		x = RB2.x - LT2.x;
 		y = RB2.y - LT2.y;
@@ -884,74 +963,81 @@ void MapTool::dragMake()
 			for (int j = 0; j <= x; j++)
 			{
 				temp = LT2.x + j + (LT2.y + i) * 100;
-				if(_rock[1] - count<0)
+				if (_rock[1] - count < 0||(_select==OBJDRAW&&count==0))
+				{
 					IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
+					if (_drag == 6&& _tiles[temp].object==OBJ_WALL)
+					{
+						_tiles[temp].type=_wall;
+						setWall(temp);
+					}
+				}
 				else
 				{
-					if (_drag == 2 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					if (_drag == 2 && _tiles[temp].object != OBJ_TREE)
 					{
-						setPosition(temp, TR_FLOOR, OBJ_NULL, POS_5);
+						setPosition(temp, TR_FLOOR, OBJ_NULL, POS_5, _floor);
 						if (j == 0 || j == x)
 						{
-							setPosition(temp, TR_NULL, OBJ_WALL, POS_4);
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_4, _wall);
 						}
 						else if (i == 0 || i == y)
 						{
-							setPosition(temp, TR_NULL, OBJ_WALL, POS_2);
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_2, _wall);
 						}
 						else if (i == 1)
 						{
-							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_2);
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_2, _floor);
 						}
 						else if (i == y - 1)
 						{
-							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_8);
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_8, _floor);
 						}
 						else if (j == 1)
 						{
-							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_4);
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_4, _floor);
 						}
 						else if (j == x - 1)
 						{
-							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_6);
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_6, _floor);
 						}
 
 						if (j == 0 && i == 0)
-							setPosition(temp, TR_NULL, OBJ_WALL, POS_1);
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_1, _wall);
 						else if (j == 0 && i == y)
-							setPosition(temp, TR_NULL, OBJ_WALL, POS_7);
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_7, _wall);
 						else if (j == x && i == 0)
-							setPosition(temp, TR_NULL, OBJ_WALL, POS_3);
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_3, _wall);
 						else if (j == x && i == y)
-							setPosition(temp, TR_NULL, OBJ_WALL, POS_9);
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_9, _wall);
 						if (x != 1 && y != 1)
 						{
 							if (j == 1 && i == 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_1);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_1, _floor);
 							else if (j == 1 && i == y - 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_7);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_7, _floor);
 							else if (j == x - 1 && i == 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_3);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_3, _floor);
 							else if (j == x - 1 && i == y - 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_9);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_9, _floor);
 						}
 						if (x == 2 && j == 1 && i != 0 && i != y)
 						{
 							if (i == 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_10);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_10, _floor);
 							else if (i == y - 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_18);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_18, _floor);
 							else
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_14);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_14, _floor);
 						}
 						if (y == 2 && i == 1 && j != 0 && j != x)
 						{
 							if (j == 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_15);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_15, _floor);
 							else if (j == x - 1)
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_17);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_17, _floor);
 							else
-								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_16);
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_16, _floor);
 						}
 						/*		if (x == 0 && j == 1 && i != 0 && i != y)
 								{
@@ -971,39 +1057,237 @@ void MapTool::dragMake()
 									else
 										setPosition(temp, TR_NULL, OBJ_WALL, POS_16);
 								}*/
-						if (_mouseTile[0].y == _mouseTile[1].y&&_mouseTile[0].x == _mouseTile[1].x)
-							setPosition(temp, TR_NULL, OBJ_WALL, POS_5);
+						if (x==y&&x==0)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_5, _wall);
 
 						setWall(temp);
 						setFloor(temp);
 					}
-					if (_drag == 3 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					if (_drag == 3 && _tiles[temp].object != OBJ_TREE)
 					{
-						//길 추가요망
+						setPosition(temp, TR_FLOOR, OBJ_NULL, POS_5, _floor);
+
+						if (i == 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_2, _floor);
+						}
+						else if (i == y - 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_8, _floor);
+						}
+						else if (j == 0)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_4, _floor);
+						}
+						else if (j == x )
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_6, _floor);
+						}
+
+						if (x != 1 && y != 1)
+						{
+							if (j == 0 && i == 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_1, _floor);
+							else if (j == 0 && i == y - 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_7, _floor);
+							else if (j == x && i == 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_3, _floor);
+							else if (j == x && i == y - 1)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_9, _floor);
+						}
+						if (y == 2 && i == 1)
+						{
+							if (j == 0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_15, _floor);
+							else if (j == x)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_17, _floor);
+							else
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_16, _floor);
+						}
+						if (i == 0 || i == y)
+						{
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_2, _wall);
+						}
+						if (_mouseTile[0].y == _mouseTile[1].y&&_mouseTile[0].x == _mouseTile[1].x)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_5, _wall);
+
 						setWall(temp);
 						setFloor(temp);
 					}
-					if (_drag == 4 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					if (_drag == 4 && _tiles[temp].object != OBJ_TREE)
 					{
-						//길 추가요망
+						setPosition(temp, TR_FLOOR, OBJ_NULL, POS_5, _floor);
+						if (i == 0)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_2, _floor);
+						}
+						else if (i == y)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_8, _floor);
+						}
+						else if (j == 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_4, _floor);
+						}
+						else if (j == x - 1)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_6, _floor);
+						}
+
+						if (x != 1 && y != 1)
+						{
+							if (j == 1 && i ==0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_1, _floor);
+							else if (j == 1 && i == y )
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_7, _floor);
+							else if (j == x - 1 && i == 0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_3, _floor);
+							else if (j == x - 1 && i == y)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_9, _floor);
+						}
+						if (x == 2 && j == 1)
+						{
+							if (i == 0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_10, _floor);
+							else if (i == y )
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_18, _floor);
+							else
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_14, _floor);
+						}
+						if (j == 0 || j == x)
+						{
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_4, _wall);
+						}
+						if (_mouseTile[0].y == _mouseTile[1].y&&_mouseTile[0].x == _mouseTile[1].x)
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_5, _wall);
+
 						setWall(temp);
 						setFloor(temp);
 					}
-					if (_drag == 5 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					if (_drag == 5 && _tiles[temp].object != OBJ_TREE && _rock[1] >= 0)
 					{
-						_tiles[temp].terrain = TR_FLOOR;
-						_tiles[temp].position = POS_5;
+						setPosition(temp, TR_FLOOR, OBJ_NULL, POS_5, _floor);
+						if (i == 0)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_2, _floor);
+						}
+						else if (i == y )
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_8, _floor);
+						}
+						else if (j == 0)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_4, _floor);
+						}
+						else if (j == x)
+						{
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_6, _floor);
+						}
+						if (x != 0 && y != 0)
+						{
+							if (j == 0 && i == 0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_1, _floor);
+							else if (j == 0 && i == y )
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_7, _floor);
+							else if (j == x  && i == 0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_3, _floor);
+							else if (j == x  && i == y )
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_9, _floor);
+						}
+						if (x == 0 && j == 0)
+						{
+							if (i == 0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_10, _floor);
+							else if (i == y)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_18, _floor);
+							else
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_14, _floor);
+						}
+						if (y == 0 && i == 0)
+						{
+							if (j == 0)
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_15, _floor);
+							else if (j == x )
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_17, _floor);
+							else
+								setPosition(temp, TR_FLOOR, OBJ_NULL, POS_16, _floor);
+						}
+						if (_mouseTile[0].y == _mouseTile[1].y&&_mouseTile[0].x == _mouseTile[1].x)
+							setPosition(temp, TR_FLOOR, OBJ_NULL, POS_12, _floor);
+
+						//_tiles[temp].terrain = TR_FLOOR;
+						//_tiles[temp].position = POS_5;
 						setFloor(temp);
 					}
-					if (_drag == 6 && _tiles[temp].object != OBJ_TREE && _rock[1] > 0)
+					if (_drag == 6 && _tiles[temp].object != OBJ_TREE)
 					{
-						_tiles[temp].object = OBJ_WALL;
-						_tiles[temp].position = POS_5;
+						count2 = 0;
+						if (_tiles[temp].terrain == TR_FLOOR) continue;
+						if (_tiles[temp - 1].terrain == TR_FLOOR) count2 += 10;
+						if (_tiles[temp + 1].terrain == TR_FLOOR) count2 += 12;
+						if (_tiles[temp - 100].terrain == TR_FLOOR) count2 += 15;
+						if (_tiles[temp + 100].terrain == TR_FLOOR) count2 += 19;
+						if (count2 == 10)
+						{
+							if(_tiles[temp - 99].terrain == TR_FLOOR|| _tiles[temp + 101].terrain == TR_FLOOR)
+								setPosition(temp, TR_NULL, OBJ_WALL, POS_13, _wall);
+							else
+								setPosition(temp, TR_NULL, OBJ_WALL, POS_4, _wall);
+						}
+						else if(count2 == 12)
+						{
+							if (_tiles[temp - 101].terrain == TR_FLOOR || _tiles[temp + 99].terrain == TR_FLOOR)
+								setPosition(temp, TR_NULL, OBJ_WALL, POS_15, _wall);
+							else
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_4, _wall);
+						}
+						else if (count2 == 15)
+						{
+							if (_tiles[temp + 101].terrain == TR_FLOOR || _tiles[temp + 99].terrain == TR_FLOOR)
+								setPosition(temp, TR_NULL, OBJ_WALL, POS_11, _wall);
+							else
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_2, _wall);
+						}
+						else if(count2 == 19)
+						{
+							if (_tiles[temp - 99].terrain == TR_FLOOR || _tiles[temp - 101].terrain == TR_FLOOR)
+								setPosition(temp, TR_NULL, OBJ_WALL, POS_17, _wall);
+							else
+							setPosition(temp, TR_NULL, OBJ_WALL, POS_2, _wall);
+						}
+						else if(count2==22)	setPosition(temp, TR_NULL, OBJ_WALL, POS_4,_wall);
+						else if(count2==34)	setPosition(temp, TR_NULL, OBJ_WALL, POS_2,_wall);
+						else if(count2==27)	setPosition(temp, TR_NULL, OBJ_WALL, POS_3,_wall);
+						else if(count2==25)	setPosition(temp, TR_NULL, OBJ_WALL, POS_1,_wall);
+						else if(count2==31)	setPosition(temp, TR_NULL, OBJ_WALL, POS_9,_wall);
+						else if(count2==29)	setPosition(temp, TR_NULL, OBJ_WALL, POS_7,_wall);
+						else if(count2==37)	setPosition(temp, TR_NULL, OBJ_WALL, POS_12, _wall);
+						else if(count2==46)	setPosition(temp, TR_NULL, OBJ_WALL, POS_18, _wall);
+						else if(count2==44)	setPosition(temp, TR_NULL, OBJ_WALL, POS_16, _wall);
+						else if(count2==41|| count2 == 56)	setPosition(temp, TR_NULL, OBJ_WALL, POS_5, _wall);
+						else if (count2 == 0)
+						{
+							if (_tiles[temp - 101].terrain == TR_FLOOR) count2 += 10;
+							if (_tiles[temp + 101].terrain == TR_FLOOR) count2 += 12;
+							if (_tiles[temp - 99].terrain == TR_FLOOR) count2 += 15;
+							if (_tiles[temp + 99].terrain == TR_FLOOR) count2 += 19;
+							if (count2 == 22 || count2 == 34 || count2 == 37 || count2 == 46 || count2 == 41 || count2 == 44 || count2 == 56)	setPosition(temp, TR_NULL, OBJ_WALL, POS_14, _wall);
+							else if (count2 == 10)	setPosition(temp, TR_NULL, OBJ_WALL, POS_9,_wall);
+							else if (count2 == 12)	setPosition(temp, TR_NULL, OBJ_WALL, POS_1,_wall);
+							else if (count2 == 15)	setPosition(temp, TR_NULL, OBJ_WALL, POS_7,_wall);
+							else if (count2 == 19)	setPosition(temp, TR_NULL, OBJ_WALL, POS_3,_wall);
+							else if (count2 == 27)	setPosition(temp, TR_NULL, OBJ_WALL, POS_13,_wall);
+							else if (count2 == 25)	setPosition(temp, TR_NULL, OBJ_WALL, POS_17,_wall);
+							else if (count2 == 31)	setPosition(temp, TR_NULL, OBJ_WALL, POS_11,_wall);
+							else if (count2 == 29)	setPosition(temp, TR_NULL, OBJ_WALL, POS_15,_wall);
+						}
 						setWall(temp);
 					}
 				}
 				if (_drag == 7 && _tiles[temp].object != OBJ_TREE)
 				{
+					_tiles[temp].terrainFrameX = 9;
+					_tiles[temp].terrainFrameY = 0;
 					_tiles[temp].objFrameX = NULL;
 					_tiles[temp].objFrameY = NULL;
 
@@ -1026,24 +1310,142 @@ void MapTool::dragMake()
 			}
 		}
 	}
-	if (_drag != 1 && _drag != -1)
+	if (_drag != 0&&_drag != 1 && _drag != -1)
 	{
 		_drag = 0;
+		floorDir();
+		wallDir();
 		checkRock();
 	}
 
-	if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_TREE || _drag == -1|| _rock[1] - count<0)
-		IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
-	else
-		IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
+	
+}
+
+void MapTool::wallDir()
+{
+	int count = 0;
+	for (int i = 0; i < TILEX * (_currentXY.y + 6); i++)
+	{
+		count = 0;
+		if (_tiles[i].object != OBJ_WALL) continue;
+		if (_tiles[i - 1].terrain == TR_FLOOR) count += 10;
+		if (_tiles[i + 1].terrain == TR_FLOOR) count += 12;
+		if (_tiles[i - 100].terrain == TR_FLOOR) count += 15;
+		if (_tiles[i + 100].terrain == TR_FLOOR) count += 19;
+		if (count == 10)
+		{
+			if (_tiles[i - 99].terrain == TR_FLOOR || _tiles[i + 101].terrain == TR_FLOOR)
+				setPosition(i, TR_NULL, OBJ_WALL, POS_13, _tiles[i].type);
+			else
+				setPosition(i, TR_NULL, OBJ_WALL, POS_4, _tiles[i].type);
+		}
+		else if (count == 12)
+		{
+			if (_tiles[i - 101].terrain == TR_FLOOR || _tiles[i + 99].terrain == TR_FLOOR)
+				setPosition(i, TR_NULL, OBJ_WALL, POS_15, _tiles[i].type);
+			else
+				setPosition(i, TR_NULL, OBJ_WALL, POS_4, _tiles[i].type);
+		}
+		else if (count == 15)
+		{
+			if (_tiles[i + 101].terrain == TR_FLOOR || _tiles[i + 99].terrain == TR_FLOOR)
+				setPosition(i, TR_NULL, OBJ_WALL, POS_11, _tiles[i].type);
+			else
+				setPosition(i, TR_NULL, OBJ_WALL, POS_2, _tiles[i].type);
+		}
+		else if (count == 19)
+		{
+			if (_tiles[i - 99].terrain == TR_FLOOR || _tiles[i - 101].terrain == TR_FLOOR)
+				setPosition(i, TR_NULL, OBJ_WALL, POS_17, _tiles[i].type);
+			else
+				setPosition(i, TR_NULL, OBJ_WALL, POS_2, _tiles[i].type);
+		}
+		else if (count == 22)	setPosition(i, TR_NULL, OBJ_WALL, POS_4,_tiles[i].type);
+		else if (count == 34)	setPosition(i, TR_NULL, OBJ_WALL, POS_2,_tiles[i].type);
+		else if (count == 27)	setPosition(i, TR_NULL, OBJ_WALL, POS_3,_tiles[i].type);
+		else if (count == 25)	setPosition(i, TR_NULL, OBJ_WALL, POS_1,_tiles[i].type);
+		else if (count == 31)	setPosition(i, TR_NULL, OBJ_WALL, POS_9,_tiles[i].type);
+		else if (count == 29)	setPosition(i, TR_NULL, OBJ_WALL, POS_7,_tiles[i].type);
+		else if (count == 37)	setPosition(i, TR_NULL, OBJ_WALL, POS_12, _tiles[i].type);
+		else if (count == 46)	setPosition(i, TR_NULL, OBJ_WALL, POS_18, _tiles[i].type);
+		else if (count == 44)	setPosition(i, TR_NULL, OBJ_WALL, POS_16, _tiles[i].type);
+		else if (count == 41 || count == 56)	setPosition(i, TR_NULL, OBJ_WALL, POS_5, _tiles[i].type);
+		else if (count == 0)
+		{
+			if (_tiles[i - 101].terrain == TR_FLOOR) count += 10;
+			if (_tiles[i + 101].terrain == TR_FLOOR) count += 12;
+			if (_tiles[i - 99].terrain == TR_FLOOR) count += 15;
+			if (_tiles[i + 99].terrain == TR_FLOOR) count += 19;
+			if (count == 22 || count == 34 || count == 37 || count == 46 || count == 41 || count == 44 || count == 56)	setPosition(i, TR_NULL, OBJ_WALL, POS_14, _tiles[i].type);
+			else if (count == 10)	setPosition(i, TR_NULL, OBJ_WALL, POS_9, _tiles[i].type);
+			else if (count == 12)	setPosition(i, TR_NULL, OBJ_WALL, POS_1, _tiles[i].type);
+			else if (count == 15)	setPosition(i, TR_NULL, OBJ_WALL, POS_7, _tiles[i].type);
+			else if (count == 19)	setPosition(i, TR_NULL, OBJ_WALL, POS_3, _tiles[i].type);
+			else if (count == 27)	setPosition(i, TR_NULL, OBJ_WALL, POS_13, _tiles[i].type);
+			else if (count == 25)	setPosition(i, TR_NULL, OBJ_WALL, POS_17, _tiles[i].type);
+			else if (count == 31)	setPosition(i, TR_NULL, OBJ_WALL, POS_11, _tiles[i].type);
+			else if (count == 29)	setPosition(i, TR_NULL, OBJ_WALL, POS_15, _tiles[i].type);
+			else if (count == 0)
+			{
+				setPosition(i, TR_NULL, OBJ_NULL, POS_15, _tiles[i].type);
+				_tiles[i].terrainFrameX = 9;
+				_tiles[i].terrainFrameY = 0;
+			}
+		}
+		setWall(i);
+	}
+}
+
+void MapTool::floorDir()
+{
+	int count = 0;
+	for (int i = 0; i < TILEX * (_currentXY.y + 6); i++)
+	{
+		count = 0;
+		if (_tiles[i].terrain != TR_FLOOR) continue;
+		if (_tiles[i - 1].terrain == TR_FLOOR&& _tiles[i - 1].type== _tiles[i].type) count += 10;
+		if (_tiles[i + 1].terrain == TR_FLOOR && _tiles[i + 1].type == _tiles[i].type) count += 12;
+		if (_tiles[i - 100].terrain == TR_FLOOR && _tiles[i - 100].type == _tiles[i].type) count += 15;
+		if (_tiles[i + 100].terrain == TR_FLOOR && _tiles[i + 100].type == _tiles[i].type) count += 19;
+		if (count == 10)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_17, _tiles[i].type);
+		else if (count == 12)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_15, _tiles[i].type);
+		else if (count == 15)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_18, _tiles[i].type);
+		else if (count == 19)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_10, _tiles[i].type);
+		else if (count == 22)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_16, _tiles[i].type);
+		else if (count == 27)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_7, _tiles[i].type);
+		else if (count == 34)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_14, _tiles[i].type);
+		else if (count == 25)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_9, _tiles[i].type);
+		else if (count == 31)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_1, _tiles[i].type);
+		else if (count == 29)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_3, _tiles[i].type);
+		else if (count == 37)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_8, _tiles[i].type);
+		else if (count == 46)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_4, _tiles[i].type);
+		else if (count == 41)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_2, _tiles[i].type);
+		else if (count == 44)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_6, _tiles[i].type);
+		else if (count == 0)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_12, _tiles[i].type);
+		else if (count == 56)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_5, _tiles[i].type);
+		setFloor(i);
+	}
 }
 
 
-void MapTool::setPosition(int i, TERRAIN ter, OBJECT obj, POS pos)
+void MapTool::setPosition(int i, TERRAIN ter, OBJECT obj, POS pos, int type)
 {
 	_tiles[i].terrain = ter;
 	_tiles[i].object = obj;
 	_tiles[i].position = pos;
+	_tiles[i].type = type;
+}
+
+void MapTool::setTerrain(int i, TERRAIN ter, POS pos)
+{
+	//_tiles[i].terrain = ter;
+	//_tiles[i].position = pos;
+}
+
+void MapTool::setObject(int i, OBJECT obj, POS pos)
+{
+	/*_tiles[i].object = obj;
+	_tiles[i].position = pos;*/
 }
 
 void MapTool::setOFrame(int i, int x, int y)
@@ -1061,7 +1463,7 @@ void MapTool::setTFrame(int i, int x, int y)
 void MapTool::checkRock()
 {
 	int count=0;
-	for (int i = 0; i < TILEX * TILEY; i++)
+	for (int i = 0; i < TILEX * (_currentXY.y + 5); i++)
 	{
 		if ((_tiles[i].object != OBJ_NULL || _tiles[i].terrain != TR_NULL)&& _tiles[i].object != OBJ_TREE)	count++;
 	}

@@ -144,3 +144,18 @@ LRESULT gameNode::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 
 	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 }
+
+void gameNode::draw(const char* str,HDC hdc,int x, int y)
+{
+	IMAGEMANAGER->findImage(str)->render(hdc,x,y);
+}
+
+void gameNode::fdraw(const char* str, HDC hdc, int x, int y)
+{
+	IMAGEMANAGER->findImage(str)->frameRender(hdc, x, y);
+}
+
+void gameNode::fdraw(const char* str, HDC hdc, int x, int y, int fx, int fy)
+{
+	IMAGEMANAGER->findImage(str)->frameRender(hdc, x, y,fx,fy);
+}

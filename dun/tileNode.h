@@ -71,6 +71,7 @@ struct tagTile
 	int		terrainFrameY;		// 지형 프레임 번호
 	int		objFrameX;			// 오브젝트 프레임 번호
 	int		objFrameY;			// 오브젝트 프레임 번호
+	int		type;
 };
 
 // 타일셋 구조체

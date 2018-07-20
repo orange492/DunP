@@ -23,6 +23,10 @@ public:
 
 	LRESULT MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
+	void draw(const char * str, HDC hdc, int x, int y);
+	void fdraw(const char * str, HDC hdc, int x, int y);
+	void fdraw(const char * str, HDC hdc, int x, int y, int fx, int fy);
+
 	image* getBackBuffer() { return _backBuffer; }
 
 	//DC Á¢±ÙÀÚ

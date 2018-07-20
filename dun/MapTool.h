@@ -17,7 +17,7 @@ enum SELECT
 class MapTool :	public gameNode
 {
 private:
-	tagTile		_tiles[TILEX * TILEY];						//맵타일
+	tagTile			_tiles[TILEX * TILEY];						//맵타일
 	tagCurrentTile	_mouseTile[2];							//드래그할때 마우스좌표
 	tagCurrentTile	_currentTileT;							//현재 지형타일
 	tagCurrentTile	_currentTileO;							//현재 오브젝트타일
@@ -52,7 +52,11 @@ public:
 	void set_wall(int i);
 	void set_floor(int i);
 	void dragMake();
-	void setPosition(int i, TERRAIN ter, OBJECT obj, POS pos);
+	void wallDir();
+	void floorDir();
+	void setPosition(int i, TERRAIN ter, OBJECT obj, POS pos, int type);
+	void setTerrain(int i, TERRAIN ter, POS pos);
+	void setObject(int i, OBJECT obj, POS pos);
 	void setOFrame(int i, int x, int y);
 	void setTFrame(int i, int x, int y);
 	void checkRock();
