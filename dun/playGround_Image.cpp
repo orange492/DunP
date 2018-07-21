@@ -15,6 +15,7 @@ HRESULT playGround::Image_init(void)
 	/////////////////////////UI
 	IMAGEMANAGER->addImage("cursor", "image/UI/cursor.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("UI", "image/UI/UI.bmp", 0, 0, 1920, 1080, true, RGB(0, 255, 255));
+	//IMAGEMANAGER->addImage("UI2", "image/UI/UI2.bmp", 0, 0, 1920, 1080, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("side", "image/UI/Side.bmp", 0, 0, 1920, 1080, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addFrameImage("button", "image/UI/button.bmp", 0, 0, 160, 120, 1, 2, true, RGB(0, 255, 255));
 

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "MapTool.h"
 
+//오브젝트그리기-사라지는거,덮을때 빨개지는거 헤결하자!//걍두기로함
+
 //지우개, 전체지우개, 그리개 - 나무 막아둠
 //바위갯수 넘었을 때, 나무걸렸을때 빨강
 //있던 벽에 연결하면  자연스럽게 하기
@@ -11,13 +13,13 @@
 //맵 저장슬롯
 //던전입구
 
-//오브젝트그리기-사라지는거,덮을때 빨개지는거 헤결하자!
+
 
 
 HRESULT MapTool::init()
 {
 	setup();
-	_select = OBJDRAW;
+	_select = ROOM;
 	// 버튼 렉트
 	for (int i = 0; i < 5; i++)
 	{
@@ -100,18 +102,7 @@ void MapTool::update()
 
 	//else if (KEYMANAGER->isOnceKeyDown('U'))
 	//{
-	//	for (int i = 0; i < TILEX * TILEY; i++)
-	//	{
-	//		if (_tiles[i].object != OBJ_TREE)
-	//		{
-	//			_tiles[i].objFrameX = NULL;
-	//			_tiles[i].objFrameY = NULL;
-
-	//			_tiles[i].object = OBJ_NULL;
-
-	//			InvalidateRect(_hWnd, NULL, false);
-	//		}
-	//	}
+	//	findDoor();
 	//}
 
 	/*for (int i = 0; i < TILEX * TILEY; i++)
@@ -889,6 +880,7 @@ void MapTool::dragMake()
 	int	temp;
 	int count=0;
 	int count2=0;
+	int count3=-1;
 
 	tagCurrentTile LT = _mouseTile[1];
 	tagCurrentTile RB = _mouseTile[0];
@@ -951,6 +943,14 @@ void MapTool::dragMake()
 							RB2.x = _currentXY.x + 1;
 					}
 				}
+				if (_select == ROOM && (x < 2 || y < 2))
+				{
+					if(count3==-1)	count3 = 0;
+					if((i==0||i==y)&&_tiles[temp - 1].terrain == TR_FLOOR || _tiles[temp + 1].terrain == TR_FLOOR || _tiles[temp - 100].terrain == TR_FLOOR || _tiles[temp + 100].terrain == TR_FLOOR
+						|| _tiles[temp - 101].terrain == TR_FLOOR || _tiles[temp - 99].terrain == TR_FLOOR || _tiles[temp + 101].terrain == TR_FLOOR || _tiles[temp + 99].terrain == TR_FLOOR) count3++;
+					if ((j == 0 || j == x) && _tiles[temp - 1].terrain == TR_FLOOR || _tiles[temp + 1].terrain == TR_FLOOR || _tiles[temp - 100].terrain == TR_FLOOR || _tiles[temp + 100].terrain == TR_FLOOR
+						|| _tiles[temp - 101].terrain == TR_FLOOR || _tiles[temp - 99].terrain == TR_FLOOR || _tiles[temp + 101].terrain == TR_FLOOR || _tiles[temp + 99].terrain == TR_FLOOR) count3++;
+				}
 			}
 		}
 		
@@ -963,8 +963,8 @@ void MapTool::dragMake()
 			for (int j = 0; j <= x; j++)
 			{
 				temp = LT2.x + j + (LT2.y + i) * 100;
-				if (_rock[1] - count < 0||(_select==OBJDRAW&&count==0))
-				{
+				if (_rock[1] - count < 0||(_select==OBJDRAW&&count==0)|| (_select == ROOM && count3 == 0))
+				{ 
 					IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
 					if (_drag == 6&& _tiles[temp].object==OBJ_WALL)
 					{
@@ -1427,7 +1427,6 @@ void MapTool::floorDir()
 	}
 }
 
-
 void MapTool::setPosition(int i, TERRAIN ter, OBJECT obj, POS pos, int type)
 {
 	_tiles[i].terrain = ter;
@@ -1477,6 +1476,33 @@ int MapTool::checkRockTile(int i)
 	else 
 		return 0;
 }
+
+void MapTool::findDoor()
+{
+	for (int i = 0; i < TILEX * (_currentXY.y + 6); i++)
+	{
+		if (_tiles[i].terrain != TR_FLOOR) continue;
+		if ((_tiles[i - 1].terrain != TR_FLOOR && _tiles[i - 1].object != OBJ_WALL) || (_tiles[i + 1].terrain != TR_FLOOR && _tiles[i + 1].object != OBJ_WALL)
+			|| (_tiles[i - 100].terrain != TR_FLOOR && _tiles[i - 100].object != OBJ_WALL) || (_tiles[i + 100].terrain != TR_FLOOR && _tiles[i + 100].object != OBJ_WALL)
+			|| (_tiles[i -101].terrain != TR_FLOOR && _tiles[i -101].object != OBJ_WALL) || (_tiles[i -99].terrain != TR_FLOOR && _tiles[i -99].object != OBJ_WALL) 
+			|| (_tiles[i + 101].terrain != TR_FLOOR && _tiles[i + 101].object != OBJ_WALL) || (_tiles[i + 99].terrain != TR_FLOOR && _tiles[i +99].object != OBJ_WALL))
+			_vDoor.push_back(i);
+	}
+	//for (_viDoor = _vDoor.begin(); _viDoor != _vDoor.end(); _viDoor++)
+	//{
+	//	_tiles[*_viDoor].object = OBJ_WALL;
+	//	setWall(*_viDoor);
+	//}
+}
+
+void MapTool::eraseDoor()
+{
+	for (_viDoor = _vDoor.begin(); _viDoor != _vDoor.end();)
+	{
+		_viDoor = _vDoor.erase(_viDoor);
+	}
+}
+
 
 MapTool::MapTool(){}
 

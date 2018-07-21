@@ -93,6 +93,7 @@ void playGround::render(void)
 	//->render(UIDC, 54, 240, CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
 	CAMERAMANAGER->cameraRender(UIDC);
 	IMAGEMANAGER->render("UI", UIDC);
+	//IMAGEMANAGER->render("UI2", UIDC);
 
 	char str[128];
 	SetTextColor(UIDC, RGB(255, 255, 255));

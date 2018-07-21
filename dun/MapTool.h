@@ -17,7 +17,9 @@ enum SELECT
 class MapTool :	public gameNode
 {
 private:
-	tagTile			_tiles[TILEX * TILEY];						//맵타일
+	vector<int>				_vDoor;
+	vector<int>::iterator	_viDoor;
+	tagTile			_tiles[TILEX * TILEY];					//맵타일
 	tagCurrentTile	_mouseTile[2];							//드래그할때 마우스좌표
 	tagCurrentTile	_currentTileT;							//현재 지형타일
 	tagCurrentTile	_currentTileO;							//현재 오브젝트타일
@@ -61,6 +63,8 @@ public:
 	void setTFrame(int i, int x, int y);
 	void checkRock();
 	int checkRockTile(int i);
+	void findDoor();
+	void eraseDoor();
 	void setup();
 	virtual void save();											// 세이브
 	virtual void load();											// 로드
