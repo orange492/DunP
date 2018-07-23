@@ -1676,7 +1676,7 @@ void MapTool::setMinimap(int i)
 	PatBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, WHITENESS);
 	StretchBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, _tempImg->getMemDC(), 0, 0, _currentXY.x * TILESIZE, _currentXY.y * TILESIZE, SRCCOPY);
 }
-
+ 
 void MapTool::setMinimap2(int i)
 {
 	PatBlt(_tempImg->getMemDC(), 0, 0, (_currentXY.x + 4) * TILESIZE, (_currentXY.y + 7) * TILESIZE, WHITENESS);
