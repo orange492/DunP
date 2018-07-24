@@ -20,6 +20,9 @@ HRESULT playGround::Image_init(void)
 	IMAGEMANAGER->addFrameImage("button", "image/UI/button.bmp", 0, 0, 160, 120, 1, 2, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("stone", "image/UI/stone.bmp", 0, 0, 30, 34, true, RGB(0, 255, 255));
 
+	/////////////////////////Έχ
+	IMAGEMANAGER->addFrameImage("28", "image/mon/28.bmp", 0, 0, 192, 64, 6, 2, true, RGB(0, 255, 255));
+
 	//IMAGEMANAGER->addImage("black", "image/UI/Black(1920x1080).bmp", 0, 0, 1920, 1080, true, RGB(255, 0, 255), true);
 	//IMAGEMANAGER->addImage("gray", "image/UI/gray(1920x1080).bmp", 0, 0, 1920, 1080, false, RGB(255, 0, 255), true);
 

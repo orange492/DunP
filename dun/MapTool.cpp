@@ -1049,7 +1049,7 @@ void MapTool::dragMake()
 		}
 		for (int i = 0; i < 3; i++)
 		{
-			if (PtInRect(&rc[i], _ptMouse) && _save[i].stone<_stone[0]&&_save[i].stone!=0)
+			if (PtInRect(&rc[i], _ptMouse) && _save[i].stone<=_stone[0]&&_save[i].stone!=0)
 			{
 				load(i);
 				setTree();
