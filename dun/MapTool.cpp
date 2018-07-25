@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MapTool.h"
+#include "monsterManager.h"
 
 //오브젝트그리기-사라지는거,덮을때 빨개지는거 헤결하자!//걍두기로함
 
@@ -16,6 +17,8 @@
 
 HRESULT MapTool::init()
 {
+	_map = new image;
+	_map = IMAGEMANAGER->addImage("field", TILESIZEX, TILESIZEY);
 	setup();
 	_select = ROOM;
 	// 버튼 렉트
@@ -37,6 +40,7 @@ HRESULT MapTool::init()
 
 	_drag = 0;
 	_eraser = true;
+	_side = true;
 	_stone[0] =_stone[1] = 1000;
 
 	for (int i = 0; i < TILEX * TILEY; i++)
@@ -59,27 +63,10 @@ HRESULT MapTool::init()
 	_tempImg->init((_currentXY.x + 4)*TILESIZE, (_currentXY.y + 4) * TILESIZE);
 
 	setTree();
-	
-	for (int i = 0; i < 3; i++)
-	{
-		HANDLE	file;
-		DWORD	load;
-		char str[128];
-		sprintf_s(str, "map/slot%d.map", i);
 
-		ZeroMemory(&_tiles2, sizeof(tagTile) * TILEX * TILEY);
-		ZeroMemory(&_savef, sizeof(SAVEF));
+	setMinimap2();
 
-		file = CreateFile(str, GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-		ReadFile(file, _tiles2, sizeof(tagTile) * TILEX * TILEY, &load, NULL);
-		ReadFile(file, &_savef, sizeof(SAVEF), &load, NULL);
-		_save[i] = _savef;
-
-		CloseHandle(file);
-
-		setMinimap2(i);
-	}
+	drawMap2();
 
 	return S_OK;
 }
@@ -90,11 +77,16 @@ void MapTool::update()
 {
 	if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
 	{
-		setmap();
-		_mouseTile[1] = _mouseTile[0];
-		_drag = 1;
+		if(_side==true)
+			setmap();
+		if ((_ptMouse.x < 1400 && _side == true)|| _side == false)
+		{
+			_mouseTile[1] = _mouseTile[0];
+			_drag = 1;
+		}
+	
 	}
-	else if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON))
+	else if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON)&&_drag!=0)
 	{
 		if (_select == ROOM)
 			_drag = 2;
@@ -117,12 +109,20 @@ void MapTool::update()
 	}
 	else if (KEYMANAGER->isOnceKeyDown(VK_RBUTTON))
 	{
-		_mouseTile[1] = _mouseTile[0];
-		_drag = -1;
+		if ((_ptMouse.x < 1400 && _side == true) || _side == false)
+		{
+			_mouseTile[1] = _mouseTile[0];
+			_drag = -1;
+		}
 	}
-	else if (KEYMANAGER->isOnceKeyUp(VK_RBUTTON))
+	else if (KEYMANAGER->isOnceKeyUp(VK_RBUTTON) && _drag != 0)
 	{
 		_eraser==false ?	_drag = 7 : _drag=8;
+	}
+
+	if (KEYMANAGER->isOnceKeyDown('E'))
+	{
+		_side == true ? _side = false : _side = true;
 	}
 
 	//else if (KEYMANAGER->isOnceKeyDown('Y'))
@@ -151,149 +151,178 @@ void MapTool::update()
 
 void MapTool::render()
 {
-	IMAGEMANAGER->render("side", UIDC,0,0);
-
-	if (_select != SAVE && _select != LOAD)
+	if (_side == true)
 	{
-		IMAGEMANAGER->render("sample", UIDC, WINSIZEX - IMAGEMANAGER->findImage("sample")->getWidth() - SAMPLEX, SAMPLEY);
-		if (_select == ROOM)
-		{
-			fdraw("map", UIDC, 1650 - 32, 300 - 32, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 - 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
-			fdraw("map", UIDC, 1650 + 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
-			fdraw("map", UIDC, 1650 + 32, 300 - 32, 3 + 7 * (_wall / 16) - 1, 3 + 3 * (_wall % 16));
-			fdraw("map", UIDC, 1650 + 32, 300 + 32, 3 + 7 * (_wall / 16) - 1, 5 + 3 * (_wall % 16));
-			fdraw("map", UIDC, 1650, 300 + 32, 2 + 7 * (_wall / 16) - 1, 3 + 3 * (_wall % 16));
-			fdraw("map", UIDC, 1650 - 32, 300 + 32, 1 + 7 * (_wall / 16) - 1, 5 + 3 * (_wall % 16));
-			fdraw("map", UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
-		}
-		if (_select == HROAD)
-		{
-			fdraw("map", UIDC, 1650 - 32, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 + 32, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 - 32, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 + 32, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 - 32, 300, 24 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
-			fdraw("map", UIDC, 1650, 300, 25 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
-			fdraw("map", UIDC, 1650 + 32, 300, 26 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
-		}
-		if (_select == VROAD)
-		{
-			fdraw("map", UIDC, 1650 - 32, 300 - 32, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 - 32, 300, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 - 32, 300 + 32, +7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 + 32, 300 - 32, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 + 32, 300, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
-			fdraw("map", UIDC, 1650 + 32, 300 + 32, +7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+		IMAGEMANAGER->render("side", UIDC, 0, 0);
 
-			fdraw("map", UIDC, 1650, 300 - 32, 23 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
-			fdraw("map", UIDC, 1650, 300, 23 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
-			fdraw("map", UIDC, 1650, 300 + 32, 23 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+		if (_select != SAVE && _select != LOAD&& _select != MONSTER&& _select != ITEMDRAW)
+		{
+			IMAGEMANAGER->render("sample", UIDC, WINSIZEX - IMAGEMANAGER->findImage("sample")->getWidth() - SAMPLEX, SAMPLEY);
+			if (_select == ROOM)
+			{
+				fdraw("map", UIDC, 1650 - 32, 300 - 32, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 - 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
+				fdraw("map", UIDC, 1650 + 32, 300, 1 + 7 * (_wall / 16) - 1, 4 + 3 * (_wall % 16));
+				fdraw("map", UIDC, 1650 + 32, 300 - 32, 3 + 7 * (_wall / 16) - 1, 3 + 3 * (_wall % 16));
+				fdraw("map", UIDC, 1650 + 32, 300 + 32, 3 + 7 * (_wall / 16) - 1, 5 + 3 * (_wall % 16));
+				fdraw("map", UIDC, 1650, 300 + 32, 2 + 7 * (_wall / 16) - 1, 3 + 3 * (_wall % 16));
+				fdraw("map", UIDC, 1650 - 32, 300 + 32, 1 + 7 * (_wall / 16) - 1, 5 + 3 * (_wall % 16));
+				fdraw("map", UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+			}
+			if (_select == HROAD)
+			{
+				fdraw("map", UIDC, 1650 - 32, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 + 32, 300 - 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 - 32, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 + 32, 300 + 32, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 - 32, 300, 24 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+				fdraw("map", UIDC, 1650, 300, 25 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+				fdraw("map", UIDC, 1650 + 32, 300, 26 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+			}
+			if (_select == VROAD)
+			{
+				fdraw("map", UIDC, 1650 - 32, 300 - 32, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 - 32, 300, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 - 32, 300 + 32, +7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 + 32, 300 - 32, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 + 32, 300, 0 + 7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+				fdraw("map", UIDC, 1650 + 32, 300 + 32, +7 * (_wall / 16), 5 + 3 * (_wall % 16) - 1);
+
+				fdraw("map", UIDC, 1650, 300 - 32, 23 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
+				fdraw("map", UIDC, 1650, 300, 23 + 7 * (_floor / 16), 4 + 3 * (_floor % 16));
+				fdraw("map", UIDC, 1650, 300 + 32, 23 + 7 * (_floor / 16), 5 + 3 * (_floor % 16));
+			}
+			if (_select == OBJDRAW)
+				fdraw("map", UIDC, 1650, 300, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16));
+			if (_select == TERRAINDRAW)
+				fdraw("map", UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
 		}
-		if (_select == OBJDRAW)
-			fdraw("map", UIDC, 1650, 300, 1 + 7 * (_wall / 16), 4 + 3 * (_wall % 16));
-		if (_select == TERRAINDRAW)
-			fdraw("map", UIDC, 1650, 300, 25 + 7 * (_floor / 16), 3 + 3 * (_floor % 16));
-	}
+
+		// 버튼 렉트
+		//for (int i = 0; i < 10; i++)
+		//{
+		//	Rectangle(UIDC, _rc[i].left, _rc[i].top, _rc[i].right, _rc[i].bottom);
+		//}
+		for (int i = 0; i < 10; i++)
+		{
+			fdraw("button", UIDC, _rc[i].left, _rc[i].top, 0, 0);
+			if (_select == ROOM)
+			{
+				fdraw("button", UIDC, _rc[0].left, _rc[0].top, 0, 1);
+			}
+			else if (_select == HROAD)
+			{
+				fdraw("button", UIDC, _rc[1].left, _rc[1].top, 0, 1);
+			}
+			else if (_select == VROAD)
+			{
+				fdraw("button", UIDC, _rc[2].left, _rc[2].top, 0, 1);
+			}
+			else if (_select == TERRAINDRAW || _select == OBJDRAW)
+			{
+				fdraw("button", UIDC, _rc[3].left, _rc[3].top, 0, 1);
+			}
+			else if (_select == ITEMDRAW)
+			{
+				fdraw("button", UIDC, _rc[4].left, _rc[4].top, 0, 1);
+			}
+			else if (_select == MONSTER)
+			{
+				fdraw("button", UIDC, _rc[5].left, _rc[5].top, 0, 1);
+			}
+			else if (_select == SAVE)
+			{
+				fdraw("button", UIDC, _rc[8].left, _rc[8].top, 0, 1);
+			}
+			else if (_select == LOAD)
+			{
+				fdraw("button", UIDC, _rc[9].left, _rc[9].top, 0, 1);
+			}
+			if (_eraser == false)
+			{
+				fdraw("button", UIDC, _rc[6].left, _rc[6].top, 0, 1);
+			}
+			else if (_eraser == true)
+			{
+				fdraw("button", UIDC, _rc[7].left, _rc[7].top, 0, 1);
+			}
+		}
+
+		// 폰트
+		SetTextColor(UIDC, RGB(10, 10, 10));
+		SetBkMode(UIDC, TRANSPARENT);
+		HFONT font, oldFont;
+		font = CreateFont(30, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+			OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+			DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+		oldFont = (HFONT)SelectObject(UIDC, font);
+		DrawText(UIDC, TEXT("방"), strlen("방"), &_rc[0], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("가로길"), strlen("가로길"), &_rc[1], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("세로길"), strlen("세로길"), &_rc[2], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("타일"), strlen("타일"), &_rc[3], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("아이템"), strlen("몬스터"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("몬스터"), strlen("몬스터"), &_rc[5], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("벽삭제"), strlen("아몬터"), &_rc[6], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("다삭제"), strlen("아몬터"), &_rc[7], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("세이브"), strlen("세이브"), &_rc[8], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("로드"), strlen("몬터"), &_rc[9], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+
+		char str[128];
+		char str2[128];
+
+		if (_select == SAVE || _select == LOAD)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				//RectangleMake(UIDC, WINSIZEX - _mapX - 60, 40, _mapX + 20, _mapY + 20);
+				_minimap[i]->render(UIDC, WINSIZEX - _mapX - 200, 190 + (i * 260));
+				sprintf_s(str, "%d X %d", _save[i].current.x, _save[i].current.y);
+				sprintf_s(str2, "%d", _save[i].stone);
+				DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 180, 270 + (i * 260), 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				DrawText(UIDC, TEXT(str2), strlen(str2), &RectMake(WINSIZEX - 180 + 35, 320 + (i * 260), 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				IMAGEMANAGER->render("stone", UIDC, WINSIZEX - 185, 320 + (i * 260));
+			}
+			SelectObject(UIDC, oldFont);
+			DeleteObject(font);
+		}
+		
+		if (_select == MONSTER)
+		{
+			SetTextColor(UIDC2, RGB(10, 10, 10));
+			SetBkMode(UIDC2, TRANSPARENT);
+			HFONT font, oldFont;
+			font = CreateFont(25, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+				OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+				DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+			oldFont = (HFONT)SelectObject(UIDC2, font);
+			for (int i = 0; i < _mM->getVDmon().size(); i++)
+			{
+				IMAGEMANAGER->render("slot", UIDC2, 0 + (i%2*250),52 +(i / 2 * 110));
+				IMAGEMANAGER->frameRender("Fimg", UIDC2, 8 + (i % 2 * 250), 60 + (i / 2 * 110), _mM->getVDmon()[i].num, 0);
+				IMAGEMANAGER->frameRender("type", UIDC2, 176 + (i % 2 * 250), 62 + (i / 2 * 110), _mM->getVDmon()[i].type % 4, _mM->getVDmon()[i].type / 4);
+				sprintf_s(str, "%s", _mM->getVDmon()[i].name.c_str());
+				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(56 + (i % 2 * 250),57 + (i / 2 * 110), 100, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				sprintf_s(str, "HP:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].fhp);
+				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(8 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				sprintf_s(str, "ATT:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].power);
+				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(78 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				sprintf_s(str, "SPD:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].atSpd);
+				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(148 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			}
+			//IMAGEMANAGER->render("slot2", UIDC2, 0 + (i % 2 * 250), 52 + (i / 2 * 110));
+			SelectObject(UIDC2, oldFont);
+			DeleteObject(font);
+		}
+
+		/*
+		희진아 화이팅~!~!!!!!
+		*/
 	
-	// 버튼 렉트
-	//for (int i = 0; i < 10; i++)
-	//{
-	//	Rectangle(UIDC, _rc[i].left, _rc[i].top, _rc[i].right, _rc[i].bottom);
-	//}
-	for (int i = 0; i < 10; i++)
-	{
-		fdraw("button",UIDC, _rc[i].left, _rc[i].top ,0,0);
-		if (_select == ROOM)
-		{
-			fdraw("button",UIDC, _rc[0].left, _rc[0].top, 0, 1);
-		}
-		else if (_select == HROAD)
-		{
-			fdraw("button",UIDC, _rc[1].left, _rc[1].top, 0, 1);
-		}
-		else if (_select == VROAD)
-		{
-			fdraw("button",UIDC, _rc[2].left, _rc[2].top, 0, 1);
-		}
-		else if (_select == TERRAINDRAW|| _select == OBJDRAW)
-		{
-			fdraw("button",UIDC, _rc[3].left, _rc[3].top, 0, 1);
-		}
-		else if (_select == ITEMDRAW)
-		{
-			fdraw("button",UIDC, _rc[4].left, _rc[4].top, 0, 1);
-		}
-		else if (_select == MONSTER)
-		{
-			fdraw("button",UIDC, _rc[5].left, _rc[5].top, 0, 1);
-		}
-		else if (_select == SAVE)
-		{
-			fdraw("button", UIDC, _rc[8].left, _rc[8].top, 0, 1);
-		}
-		else if (_select == LOAD)
-		{
-			fdraw("button", UIDC, _rc[9].left, _rc[9].top, 0, 1);
-		}
-		if (_eraser==false)
-		{
-			fdraw("button",UIDC, _rc[6].left, _rc[6].top, 0, 1);
-		}
-		else if (_eraser == true)
-		{
-			fdraw("button",UIDC, _rc[7].left, _rc[7].top, 0, 1);
-		}
 	}
-
-	// 폰트
-	SetTextColor(UIDC, RGB(10, 10, 10));
-	SetBkMode(UIDC, TRANSPARENT);
-	HFONT font, oldFont;
-	font = CreateFont(30, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
-		OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
-		DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
-	oldFont = (HFONT)SelectObject(UIDC, font);
-	DrawText(UIDC, TEXT("방"), strlen("방"), &_rc[0], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("가로길"), strlen("가로길"), &_rc[1], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("세로길"), strlen("세로길"), &_rc[2], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("타일"), strlen("타일"), &_rc[3], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("아이템"), strlen("몬스터"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("몬스터"), strlen("몬스터"), &_rc[5], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("벽삭제"), strlen("아몬터"), &_rc[6], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("다삭제"), strlen("아몬터"), &_rc[7], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("세이브"), strlen("세이브"), &_rc[8], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	DrawText(UIDC, TEXT("로드"), strlen("몬터"), &_rc[9], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-
-	// 지형
-	for (int i = 0; i < TILEX * TILEY; i++)
-	{
-		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
-			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
-		fdraw("map",DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		//if(i == 444)
-	}
-
-	// 오브젝트
-	for (int i = 0; i < TILEX * TILEY; i++)
-	{
-		// 오브젝트 속성이 아니면 그리지마
-		if (_tiles[i].object == OBJ_NULL) continue;
-		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
-			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
-		{
-
-			if (_tiles[i].object == OBJ_WALL)
-				fdraw("map",DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
-			else if (_tiles[i].object == OBJ_TREE)
-				IMAGEMANAGER->frameRender("tree", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
-			else
-				IMAGEMANAGER->frameRender("samplemap", DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
-		}
-	}
+	IMAGEMANAGER->render("field",DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, WINSIZEX, WINSIZEY);
 
 	dragMake();
 
@@ -340,26 +369,8 @@ void MapTool::render()
 	else
 		_canMove = true;
 
-	char str[128];
-	char str2[128];
-	
-	if (_select == SAVE || _select == LOAD)
-	{
-		for (int i = 0; i < 3; i++)
-		{
-			//RectangleMake(UIDC, WINSIZEX - _mapX - 60, 40, _mapX + 20, _mapY + 20);
-			_minimap[i]->render(UIDC, WINSIZEX - _mapX - 200, 190 + (i * 260));
-			sprintf_s(str, "%d X %d", _save[i].current.x, _save[i].current.y);
-			sprintf_s(str2, "%d", _save[i].stone);
-			DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 180, 270 + (i * 260),200,50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-			DrawText(UIDC, TEXT(str2), strlen(str2), &RectMake(WINSIZEX - 180+35, 320 + (i * 260), 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-			IMAGEMANAGER->render("stone", UIDC, WINSIZEX - 185, 320 + (i * 260));
-		}
-	}
-	SelectObject(UIDC, oldFont);
-	DeleteObject(font);
-
-	IMAGEMANAGER->render("side", DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2);
+	if (_side == true)
+		IMAGEMANAGER->render("side", DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2);
 }
 
 void MapTool::save()
@@ -376,6 +387,8 @@ void MapTool::save()
 
 void MapTool::save(int i)
 {
+	tagTile	_tiles2[TILEX * TILEY];
+
 	for (int j = 0; j < TILEX * TILEY; j++)
 	{
 		if (_tiles[j].object == OBJ_TREE)
@@ -1056,7 +1069,7 @@ void MapTool::dragMake()
 			}
 		}
 	}
-	else if (_drag != 0 && _select != SAVE && _select != LOAD)
+	else if (_drag != 0 && _select != SAVE && _select != LOAD && _select != MONSTER && _select != ITEMDRAW)
 	{
 		for (int i = 0; i <= y; i++)
 		{
@@ -1469,9 +1482,10 @@ void MapTool::dragMake()
 		floorDir();
 		wallDir();
 		checkstone();
+		drawMap();
+		//InvalidateRect(_hWnd, , false);
 	}
 
-	
 }
 
 void MapTool::wallDir()
@@ -1677,25 +1691,106 @@ void MapTool::setMinimap(int i)
 	StretchBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, _tempImg->getMemDC(), 0, 0, _currentXY.x * TILESIZE, _currentXY.y * TILESIZE, SRCCOPY);
 }
  
-void MapTool::setMinimap2(int i)
+void MapTool::setMinimap2()
 {
-	PatBlt(_tempImg->getMemDC(), 0, 0, (_currentXY.x + 4) * TILESIZE, (_currentXY.y + 7) * TILESIZE, WHITENESS);
+	tagTile	_tiles2[TILEX * TILEY];
 
-	for (int i = 3; i < _currentXY.y + 5; i++)
+	for (int i = 0; i < 3; i++)
 	{
-		for (int j = 0; j < _currentXY.x + 2; j++)
+		HANDLE	file;
+		DWORD	load;
+		char str[128];
+		sprintf_s(str, "map/slot%d.map", i);
+
+		ZeroMemory(&_tiles2, sizeof(tagTile) * TILEX * TILEY);
+		ZeroMemory(&_savef, sizeof(SAVEF));
+
+		file = CreateFile(str, GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+
+		ReadFile(file, _tiles2, sizeof(tagTile) * TILEX * TILEY, &load, NULL);
+		ReadFile(file, &_savef, sizeof(SAVEF), &load, NULL);
+		_save[i] = _savef;
+
+		CloseHandle(file);
+
+		PatBlt(_tempImg->getMemDC(), 0, 0, (_currentXY.x + 4) * TILESIZE, (_currentXY.y + 7) * TILESIZE, WHITENESS);
+
+		for (int i = 3; i < _currentXY.y + 5; i++)
 		{
-			if (_tiles2[i * TILEX + j].object == OBJ_NULL && _tiles2[i * TILEX + j].terrain == TR_NULL) continue;
-			if (_tiles2[i * TILEX + j].terrain == TR_FLOOR)
-				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].terrainFrameX, _tiles2[i * TILEX + j].terrainFrameY);
-			else if (_tiles2[i * TILEX + j].object == OBJ_WALL)
-				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
+			for (int j = 0; j < _currentXY.x + 2; j++)
+			{
+				if (_tiles2[i * TILEX + j].object == OBJ_NULL && _tiles2[i * TILEX + j].terrain == TR_NULL) continue;
+				if (_tiles2[i * TILEX + j].terrain == TR_FLOOR)
+					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].terrainFrameX, _tiles2[i * TILEX + j].terrainFrameY);
+				else if (_tiles2[i * TILEX + j].object == OBJ_WALL)
+					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
+				else
+					IMAGEMANAGER->frameRender("tree", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
+			}
+		}
+		PatBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, WHITENESS);
+		StretchBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, _tempImg->getMemDC(), 0, 0, (_currentXY.x) * TILESIZE, (_currentXY.y) * TILESIZE, SRCCOPY);
+	}
+}
+
+void MapTool::drawMap()
+{
+	// 지형
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
+			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
+			fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
+		//if(i == 444)
+	}
+
+	// 오브젝트
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		// 오브젝트 속성이 아니면 그리지마
+		if (_tiles[i].object == OBJ_NULL) continue;
+		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
+			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
+		{
+
+			if (_tiles[i].object == OBJ_WALL)
+				fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+			else if (_tiles[i].object == OBJ_TREE)
+				IMAGEMANAGER->frameRender("tree", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
-				IMAGEMANAGER->frameRender("tree", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
+				IMAGEMANAGER->frameRender("samplemap", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 		}
 	}
-	PatBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, WHITENESS);
-	StretchBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, _tempImg->getMemDC(), 0, 0, (_currentXY.x) * TILESIZE, (_currentXY.y) * TILESIZE, SRCCOPY);
+}
+
+void MapTool::drawMap2()
+{
+	// 지형
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		//if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
+		//	&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
+		fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
+		//if(i == 444)
+	}
+
+	// 오브젝트
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		// 오브젝트 속성이 아니면 그리지마
+		if (_tiles[i].object == OBJ_NULL) continue;
+		//if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
+		//	&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
+		{
+
+			if (_tiles[i].object == OBJ_WALL)
+				fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+			else if (_tiles[i].object == OBJ_TREE)
+				IMAGEMANAGER->frameRender("tree", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+			else
+				IMAGEMANAGER->frameRender("samplemap", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+		}
+	}
 }
 
 MapTool::MapTool(){}

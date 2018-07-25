@@ -13,6 +13,10 @@ HRESULT playGround::init(void)
 	Sound_init();
 	_mapTool = new MapTool;
 	_mapTool->init();
+	_mM = new monsterManager;
+	_mM->init();
+	_mapTool->setmMMemoryAddressLink(_mM);
+	CAMERAMANAGER->setmMMemoryAddressLink(_mM);
 
 	mode = 맵툴;	
 	
@@ -63,12 +67,13 @@ void playGround::update(void)
 
 		if (KEYMANAGER->isStayKeyDown('D')&& CAMERAMANAGER->getCameraCenter().x + WINSIZEX / 2<(_mapTool->getCurrentXY().x+22)*32&&CAMERAMANAGER->getCameraCenter().x+WINSIZEX/2<TILESIZEX+500)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x + 50, CAMERAMANAGER->getCameraCenter().y));
-		if (KEYMANAGER->isStayKeyDown('S') && CAMERAMANAGER->getCameraCenter().y + WINSIZEX / 2<(_mapTool->getCurrentXY().y + 25) * 32&&CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2<TILESIZEY-20)
+		else if (KEYMANAGER->isStayKeyDown('S') && CAMERAMANAGER->getCameraCenter().y + WINSIZEX / 2<(_mapTool->getCurrentXY().y + 25) * 32&&CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2<TILESIZEY-20)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y + 50));
-		if (KEYMANAGER->isStayKeyDown('A') && CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2>0)
+		else if (KEYMANAGER->isStayKeyDown('A') && CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2>0)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x - 50, CAMERAMANAGER->getCameraCenter().y));
-		if (KEYMANAGER->isStayKeyDown('W')&& CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2>0)
+		else if (KEYMANAGER->isStayKeyDown('W')&& CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2>0)
 			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y - 50));
+	
 	}
 	
 }
@@ -86,7 +91,7 @@ void playGround::render(void)
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////// 이 아래로도 건들지 마시오
 		//IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);
-		//TIMEMANAGER->render(UIDC);
+	
 
 	//if(mode == 타이틀)
 	//IMAGEMANAGER->findImage("카메라DC")->render(UIDC, 54,240,CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
@@ -109,13 +114,14 @@ void playGround::render(void)
 	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1710,25,200,50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 	SelectObject(UIDC, oldFont);
 	DeleteObject(font);
-
+	TIMEMANAGER->render(UIDC);
 	if (_mapTool->getCanMove() == true)
 	IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);
 	CAMERAMANAGER->render(this->getBackBuffer());
+	//CAMERAMANAGER->render(this->getBackBuffer());
 	this->getBackBuffer()->render(getHDC(), 0, 0, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, WINSIZEX, WINSIZEY);
 	//IMAGEMANAGER->render("cursor", getHDC(), _ptMouse.x, _ptMouse.y);
-
+	
 	// 맨마지막으로 카메라 매니저 의 DC를 그려줍니다.
 	// CAMERAMANAGER->setCameraX()  CAMERAMANAGER->setCameraY() 를 이용하면   X ,Y 에  WINSIZEX , WINSIZEY 만큼 화면에 그려주고있는 렉트를 이동시킬 수 있음 .
 	// 그리고 모든 렌더의 hdc 는 CAMERAMANAGER->getCameraDC()->getMemDC() 로 해주어야함 !~~!!$!$!#ㄸ!#ㄸ!$!$#@$!@#@!

@@ -4,16 +4,19 @@
 //#include "tileNode.h"
 #define moveValue 1
 
-
+class monsterManager;
 
 class cameraManager  : public  singletonBase<cameraManager>
 {
 private:
+	monsterManager * _mM;
 	image*	_camera;
 	POINT	_center;
 	
 	image * _cameraDC;
 	POINT	_point;
+
+	int _monNum;
 	/*
 	image * _cameraDC2;
 	RECT _cameraRc;
@@ -65,6 +68,7 @@ public:
 	POINT getCameraCenter(void) { return _center; }
 	POINT getCameraPoint(void) { return _point; }
 	image* getCamera(void) { return _camera; }
-
+	int getMonNum() { return _monNum; }
+	void setmMMemoryAddressLink(monsterManager* mM) { _mM = mM; }
 };
 

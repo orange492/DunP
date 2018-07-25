@@ -1,16 +1,15 @@
 #include "stdafx.h"
 #include "cameraManager.h"
-
+#include "monsterManager.h"
 
 HRESULT cameraManager::init()
 {
 	_camera = IMAGEMANAGER->addImage("CAMERA", WINSIZEX, WINSIZEY);
 	_center = PointMake(WINSIZEX / 2, WINSIZEY / 2);
 	
-
-	_cameraDC = IMAGEMANAGER->addImage("카메라DC", 600, 1080,true,RGB(0,0,0));
+	_cameraDC = IMAGEMANAGER->addImage("카메라DC", 500, 5000,true,RGB(0,0,0));
 	//_cameraDC = IMAGEMANAGER->addImage("카메라DC", WINSIZEX, WINSIZEY, true, RGB(0, 0, 0));
-	_point = PointMake(0, 0);
+	_point = PointMake(0, 50);
 	//_cameraDC2 = IMAGEMANAGER->addImage("카메라DC2", BACKGROUNDSIZEX, BACKGROUNDSIZEY);
 	//_cameraX = 0; _cameraY = 0;
 	//_cameraX2 = 0; _cameraY2 = 0;
@@ -22,6 +21,7 @@ void cameraManager::update()
 {
 	//_cameraRc = RectMake(_cameraX, _cameraY, WINSIZEX, WINSIZEY);
 	//_cameraRc2 = RectMake(_cameraX2, _cameraY2, CAMERA2X, CAMERA2Y);
+	_monNum = _mM->getVDmon().size();
 }
 
 
@@ -72,12 +72,19 @@ void cameraManager::render(image* img)
 
 void cameraManager::cameraRender(HDC hdc)
 {
-	GdiTransparentBlt(hdc, 54, 240, 600, 670,
-		_cameraDC->getMemDC(), CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670, RGB(0, 0, 0));
-	//RectangleMake(hdc, 100, 100, 100, 100);
-	//_cameraDC->render(hdc, 54, 240, _center.x, _center.y, 600, 670);
-		//IMAGEMANAGER->findImage("카메라DC")->render(UIDC, 54, 240, CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
+
+	GdiTransparentBlt(hdc, 1414, 185, 500, 770,
+		_cameraDC->getMemDC(),_point.x, _point.y, 500, 770, RGB(0, 0, 0));
 }
+
+//void cameraManager::cameraRender(HDC hdc)
+//{
+//	GdiTransparentBlt(hdc, 54, 240, 600, 670,
+//		_cameraDC->getMemDC(), CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670, RGB(0, 0, 0));
+//	//RectangleMake(hdc, 100, 100, 100, 100);
+//	//_cameraDC->render(hdc, 54, 240, _center.x, _center.y, 600, 670);
+//		//IMAGEMANAGER->findImage("카메라DC")->render(UIDC, 54, 240, CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
+//}
 
 void cameraManager::setCameraCenter(POINT point)
 {

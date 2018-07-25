@@ -2,6 +2,8 @@
 #include "tileNode.h"
 #include "gameNode.h"
 
+class monsterManager;
+
 enum SELECT
 {
 	ROOM,
@@ -24,10 +26,10 @@ struct SAVEF
 class MapTool :	public gameNode
 {
 private:
+	monsterManager * _mM;
 	vector<int>				_vDoor;
 	vector<int>::iterator	_viDoor;
 	tagTile			_tiles[TILEX * TILEY];					//맵타일
-	tagTile			_tiles2[TILEX * TILEY];					//맵타일
 	tagCurrentTile	_mouseTile[2];							//드래그할때 마우스좌표
 	tagCurrentTile	_currentTileT;							//현재 지형타일
 	tagCurrentTile	_currentTileO;							//현재 오브젝트타일
@@ -40,17 +42,20 @@ private:
 
 	SAVEF _save[3];
 	SAVEF _savef;
+	image* _map;
 	image* _tempImg;
 	image* _minimap[3];
 	int _mapX, _mapY;
 	//int			_pos[2];
 	int			_stone[2];									//최대,현재 보유중인 벽돌 수
 	int			_food[2];									//최대,현재 보유중인 식량 수
+	int			_money;										//현재 보유중인 돈의 양
 	int			_drag;										//드래그 후 _select에따라 다른 기능 실행
 	int			_wall;										//몇번째 벽 선택중인지
 	int			_floor;										//몇번째 바닥 선택중인지
 	int			_tree;										//무슨 나무 선택중인지
 
+	bool		_side;										//사이드슬롯 온/오프
 	bool		_canMove;									//탭으로 타일 확인할때 못움직이게
 	bool		_eraser;									//무슨 지우개 선택중인지
 
@@ -79,7 +84,9 @@ public:
 	void findDoor();
 	void eraseDoor();
 	void setMinimap(int i);
-	void setMinimap2(int i);
+	void setMinimap2();
+	void drawMap();
+	void drawMap2();
 	void setup();
 	virtual void save();											// 세이브
 	void save(int i);
@@ -87,6 +94,7 @@ public:
 	void load(int i);
 	virtual void setmap();
 
+	void setmMMemoryAddressLink(monsterManager* mM) { _mM = mM; }
 	TERRAIN		terrainSelect(int FrameX, int FrameY);		// 어떤 지형을 선택했는지
 	OBJECT		objSelect(int FrameX, int FrameY);			// 어던 오브젝트를 선택했는지
 	tagTile*	getTiles()		{ return _tiles; }			// 타일 접근자
