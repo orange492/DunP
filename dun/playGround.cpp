@@ -96,7 +96,7 @@ void playGround::render(void)
 	//if(mode == 타이틀)
 	//IMAGEMANAGER->findImage("카메라DC")->render(UIDC, 54,240,CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
 	//->render(UIDC, 54, 240, CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
-	CAMERAMANAGER->cameraRender(UIDC);
+	
 	IMAGEMANAGER->render("UI", UIDC);
 	//IMAGEMANAGER->render("UI2", UIDC);
 

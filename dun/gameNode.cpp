@@ -123,14 +123,22 @@ LRESULT gameNode::MainProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lPara
 			if ((SHORT)HIWORD(wParam) > 0)
 			{
 				CAMERAMANAGER->setCameraPoint(PointMake(CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y - 110));
+				CAMERAMANAGER->setScroll(CAMERAMANAGER->getScroll() - 1);
 				if (CAMERAMANAGER->getCameraPoint().y < 50)
+				{
 					CAMERAMANAGER->setCameraPoint(PointMake(CAMERAMANAGER->getCameraPoint().x, 50));
+					CAMERAMANAGER->setScroll(CAMERAMANAGER->getScroll() + 1);
+				}
 			}
 			else
 			{
 				CAMERAMANAGER->setCameraPoint(PointMake(CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y + 110));
-				if (CAMERAMANAGER->getCameraPoint().y + 750 >= 800 + (CAMERAMANAGER->getMonNum() - 13) / 2 * 110)
-					CAMERAMANAGER->setCameraPoint(PointMake(CAMERAMANAGER->getCameraPoint().x, (CAMERAMANAGER->getMonNum() - 13)/2 * 110+50) );
+				CAMERAMANAGER->setScroll(CAMERAMANAGER->getScroll() + 1);
+				if (CAMERAMANAGER->getCameraPoint().y + 750 > 800 + (CAMERAMANAGER->getMonNum() - 13) / 2 * 110)
+				{
+					CAMERAMANAGER->setCameraPoint(PointMake(CAMERAMANAGER->getCameraPoint().x, (CAMERAMANAGER->getMonNum() - 13) / 2 * 110 + 50));
+					CAMERAMANAGER->setScroll(CAMERAMANAGER->getScroll() - 1);
+				}
 				//MessageBox(_hWnd, "¾Æ·¡·Î°¬´Ù", "¾Æ·¡·Î°¬´Ù", NULL);
 			}
 				return 0;

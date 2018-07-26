@@ -42,12 +42,14 @@ HRESULT MapTool::init()
 	_eraser = true;
 	_side = true;
 	_stone[0] =_stone[1] = 1000;
+	_currentMon = -1;
 
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
 		setTFrame(i, 9, 0);
 		_tiles[i].terrain = TR_NULL;
 		_tiles[i].object = OBJ_NULL;
+		_tiles[i].mon = -1;
 	}
 
 	_mapX = 250, _mapY = 250;
@@ -86,7 +88,7 @@ void MapTool::update()
 		}
 	
 	}
-	else if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON)&&_drag!=0)
+	else if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON)&&(_drag!=0||_select>4))
 	{
 		if (_select == ROOM)
 			_drag = 2;
@@ -151,6 +153,7 @@ void MapTool::update()
 
 void MapTool::render()
 {
+	IMAGEMANAGER->render("field", DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, WINSIZEX, WINSIZEY);
 	if (_side == true)
 	{
 		IMAGEMANAGER->render("side", UIDC, 0, 0);
@@ -291,30 +294,89 @@ void MapTool::render()
 		
 		if (_select == MONSTER)
 		{
-			SetTextColor(UIDC2, RGB(10, 10, 10));
-			SetBkMode(UIDC2, TRANSPARENT);
-			HFONT font, oldFont;
-			font = CreateFont(25, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
-				OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
-				DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
-			oldFont = (HFONT)SelectObject(UIDC2, font);
-			for (int i = 0; i < _mM->getVDmon().size(); i++)
+			CAMERAMANAGER->cameraRender(UIDC);
+			for (int i = 0; i < 14; i++)
 			{
-				IMAGEMANAGER->render("slot", UIDC2, 0 + (i%2*250),52 +(i / 2 * 110));
-				IMAGEMANAGER->frameRender("Fimg", UIDC2, 8 + (i % 2 * 250), 60 + (i / 2 * 110), _mM->getVDmon()[i].num, 0);
-				IMAGEMANAGER->frameRender("type", UIDC2, 176 + (i % 2 * 250), 62 + (i / 2 * 110), _mM->getVDmon()[i].type % 4, _mM->getVDmon()[i].type / 4);
-				sprintf_s(str, "%s", _mM->getVDmon()[i].name.c_str());
-				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(56 + (i % 2 * 250),57 + (i / 2 * 110), 100, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-				sprintf_s(str, "HP:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].fhp);
-				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(8 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-				sprintf_s(str, "ATT:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].power);
-				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(78 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-				sprintf_s(str, "SPD:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].atSpd);
-				DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(148 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON) && PtInRect(&RectMake(1414 + (i % 2 * 250), 187 + (i / 2 * 110), 220, 100), _ptMouse)&& _mM->getVDmon().size() != i + CAMERAMANAGER->getScroll() * 2)
+				{
+					/*_mM->eraseDmon(i + CAMERAMANAGER->getScroll() * 2);
+					drawList(-1);*/
+					if (_mM->getVDmon().size() < i) continue;
+					if (_currentMon == i + CAMERAMANAGER->getScroll() * 2)
+					{
+						_currentMon = -1;
+						drawList(_currentMon);
+						break;
+					}
+					if (_currentMon!=-1&& _currentMon!= i + CAMERAMANAGER->getScroll() * 2&&_mM->getVDmon()[_currentMon].num == _mM->getVDmon()[i + CAMERAMANAGER->getScroll() * 2].num&&_mM->getVDmon()[_currentMon].evolution == true)
+					{
+						_mM->evolution(0, _currentMon);
+						_mM->eraseDmon(i + CAMERAMANAGER->getScroll() * 2);
+						_currentMon = -1;
+						drawList(_currentMon);
+						break;
+					}
+					_currentMon = i + CAMERAMANAGER->getScroll() * 2;
+					drawList(_currentMon);
+					//IMAGEMANAGER->findImage("slot2")->render(UIDC2, i % 2 * 250, i / 2 * 110);
+					break;
+				}
 			}
-			//IMAGEMANAGER->render("slot2", UIDC2, 0 + (i % 2 * 250), 52 + (i / 2 * 110));
-			SelectObject(UIDC2, oldFont);
-			DeleteObject(font);
+			if (KEYMANAGER->isOnceKeyDown(VK_RBUTTON))
+			{
+				if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON)
+				{
+					if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_2)
+						_mouseTile[0].x -= 1;
+					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_3)
+						_mouseTile[0].x -= 2;
+					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_4)
+					{
+						_mouseTile[0].y -= 1;
+					}
+					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_5)
+					{
+						_mouseTile[0].x -= 1;
+						_mouseTile[0].y -= 1;
+					}
+					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_6)
+					{
+						_mouseTile[0].x -= 2;
+						_mouseTile[0].y -= 1;
+					}
+					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_7)
+						_mouseTile[0].y -= 2;
+					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_8)
+					{
+						_mouseTile[0].x -= 1;
+						_mouseTile[0].y -= 2;
+					}
+					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_9)
+					{
+						_mouseTile[0].x -= 2;
+						_mouseTile[0].y -= 2;
+					}
+
+				}
+				_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].mon = -1;
+				for (int i = 0; i<_mM->getVDmon()[_currentMon].size.y; i++)
+					for (int j = 0; j < _mM->getVDmon()[_currentMon].size.x; j++)
+					{
+						_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].object == OBJ_NULL;
+					}
+				
+			}
+			if (_currentMon >= 0)
+			{
+				for (int i = 0; i < _mM->getVDmon()[_currentMon].size.y; i++)
+				{
+					for (int j = 0; j < _mM->getVDmon()[_currentMon].size.x; j++)
+					{
+						IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
+					}
+				}
+			}
+
 		}
 
 		/*
@@ -322,7 +384,6 @@ void MapTool::render()
 		*/
 	
 	}
-	IMAGEMANAGER->render("field",DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, WINSIZEX, WINSIZEY);
 
 	dragMake();
 
@@ -455,6 +516,11 @@ void MapTool::load(int i)
 	ReadFile(file, _tiles, sizeof(tagTile) * TILEX * TILEY, &load, NULL);
 	ReadFile(file, &_savef, sizeof(SAVEF), &load, NULL);
 	_save[i] = _savef;
+	
+	for (int i = 0; i < TILEX * TILEY; ++i)
+	{
+		_tiles[i].mon = -1;
+	}
 
 	CloseHandle(file);
 }
@@ -503,34 +569,26 @@ void MapTool::setmap()
 	{
 		if (PtInRect(&_rc[i], _ptMouse))
 		{
-			/*if (i == 8)
+			if (i == 0) _select = ROOM;
+			else if (i == 1) _select = HROAD;
+			else if (i == 2) _select = VROAD;
+			else if (i == 3) _select = OBJDRAW;
+			else if (i == 4) _select = ITEMDRAW;
+			else if (i == 5)
 			{
-				save();
-				break;
+				_select = MONSTER;
+				drawList(-1);
 			}
-			else if (i == 9)
-			{
-				load();
-				break;
-			}*/
-			
-			{
-				if (i == 0) _select = ROOM;
-				if (i == 1) _select = HROAD;
-				if (i == 2) _select = VROAD;
-				if (i == 3) _select = OBJDRAW;
-				if (i == 4) _select = ITEMDRAW;
-				if (i == 5) _select = MONSTER;
-				if (i == 6) _eraser = false;
-				if (i == 7) _eraser = true;
-				if (i == 8) _select = SAVE;
-				if (i == 9) _select = LOAD;
-				break;
-			}
+			else if (i == 6) _eraser = false;
+			else if (i == 7) _eraser = true;
+			else if (i == 8) _select = SAVE;
+			else if (i == 9) _select = LOAD;
+			_currentMon = -1;
+			break;
 		}
 	}
 
-	if (_select != SAVE && _select != LOAD)
+	if (_select != SAVE && _select != LOAD && _select != MONSTER && _select != ITEMDRAW)
 	{
 		for (int i = 0; i < SAMPLETILEX * SAMPLETILEY; i++)
 		{
@@ -1066,6 +1124,50 @@ void MapTool::dragMake()
 			{
 				load(i);
 				setTree();
+			}
+		}
+	}
+	else if (_drag == 10&&_currentMon!=-1)
+	{
+		for (int i = 0; i < _mM->getVDmon()[_currentMon].size.y; i++)
+		{
+			for (int j = 0; j < _mM->getVDmon()[_currentMon].size.x; j++)
+			{
+				if (_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].terrain == TR_FLOOR)
+				{
+					if (i == _mM->getVDmon()[_currentMon].size.y - 1 && j==_mM->getVDmon()[_currentMon].size.x - 1)
+					{
+						_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].mon = _currentMon;
+						for (int k = 0; k < _mM->getVDmon()[_currentMon].size.y; k++)
+							for (int l = 0; l < _mM->getVDmon()[_currentMon].size.x; l++)
+							{
+								_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object = OBJ_MON;
+								if (k == 0 && l == 0)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_1;
+								else if (k == 0 && l == 1)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_2;
+								else if (k == 0 && l == 2)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_3;
+								else if (k == 1 && l == 0)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_4;
+								else if (k == 1 && l == 1)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_5;
+								else if (k == 1 && l == 2)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_6;
+								else if (k == 2 && l == 0)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_7;
+								else if (k == 2 && l == 1)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_8;
+								else if (k == 2 && l == 2)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_9;
+							}
+					}
+				}
+				else
+				{
+					_drag = 0;
+					return;
+				}
 			}
 		}
 	}
@@ -1683,8 +1785,8 @@ void MapTool::setMinimap(int i)
 				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, _tiles[i * TILEX + j].terrainFrameX, _tiles[i * TILEX + j].terrainFrameY);
 			else if (_tiles[i * TILEX + j].object==OBJ_WALL)
 				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, _tiles[i * TILEX + j].objFrameX, _tiles[i * TILEX + j].objFrameY);
-			else
-				IMAGEMANAGER->frameRender("tree", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, _tiles[i * TILEX + j].objFrameX, _tiles[i * TILEX + j].objFrameY);
+			//else if (_tiles[i * TILEX + j].object == OBJ_TREE)
+			//	IMAGEMANAGER->frameRender("tree", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, _tiles[i * TILEX + j].objFrameX, _tiles[i * TILEX + j].objFrameY);
 		}
 	}
 	PatBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, WHITENESS);
@@ -1724,8 +1826,8 @@ void MapTool::setMinimap2()
 					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].terrainFrameX, _tiles2[i * TILEX + j].terrainFrameY);
 				else if (_tiles2[i * TILEX + j].object == OBJ_WALL)
 					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
-				else
-					IMAGEMANAGER->frameRender("tree", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
+				//else if (_tiles2[i * TILEX + j].object == OBJ_TREE&& (i - 5) * TILEX + j - 2 !=502)
+				//	IMAGEMANAGER->frameRender("tree", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
 			}
 		}
 		PatBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, WHITENESS);
@@ -1735,18 +1837,26 @@ void MapTool::setMinimap2()
 
 void MapTool::drawMap()
 {
+	
 	// 지형
 	for (int i = 0; i < TILEX * TILEY; i++)
-	{
+	{char str[128];
 		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
 			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
-			fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		//if(i == 444)
+			fdraw("map", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
+		
+		if (_tiles[i].mon != -1)
+		{
+			sprintf_s(str, "a%d", _mM->getVDmon()[_tiles[i].mon].num);
+			draw(str, MAP, 896,416);
+			//sprintf_s()
+		}
 	}
 
 	// 오브젝트
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
+		char str[128];
 		// 오브젝트 속성이 아니면 그리지마
 		if (_tiles[i].object == OBJ_NULL) continue;
 		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
@@ -1754,24 +1864,31 @@ void MapTool::drawMap()
 		{
 
 			if (_tiles[i].object == OBJ_WALL)
-				fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+				fdraw("map", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else if (_tiles[i].object == OBJ_TREE)
-				IMAGEMANAGER->frameRender("tree", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+				IMAGEMANAGER->frameRender("tree", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
-				IMAGEMANAGER->frameRender("samplemap", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+				IMAGEMANAGER->frameRender("samplemap", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 		}
 	}
+	
 }
 
 void MapTool::drawMap2()
 {
+	char str[128];
 	// 지형
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
 		//if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
 		//	&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
-		fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		//if(i == 444)
+		fdraw("map", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
+		if (_tiles[i].mon != -1)
+		{
+			sprintf_s(str, "a%d", _mM->getVDmon()[_tiles[i].mon].num);
+			fdraw(str, DC, _tiles[i].rc.left, _tiles[i].rc.top);
+			//sprintf_s()
+		}
 	}
 
 	// 오브젝트
@@ -1782,15 +1899,51 @@ void MapTool::drawMap2()
 		//if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
 		//	&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
 		{
-
 			if (_tiles[i].object == OBJ_WALL)
-				fdraw("map", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+				fdraw("map", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else if (_tiles[i].object == OBJ_TREE)
-				IMAGEMANAGER->frameRender("tree", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+				IMAGEMANAGER->frameRender("tree", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
-				IMAGEMANAGER->frameRender("samplemap", IMAGEMANAGER->findImage("field")->getMemDC(), _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+				IMAGEMANAGER->frameRender("samplemap", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 		}
 	}
+}
+
+void MapTool::drawList(int num)
+{
+	PatBlt(UIDC2, 0, 0, 500, 5000, BLACKNESS);
+	char str[128];
+	SetTextColor(UIDC2, RGB(10, 10, 10));
+	SetBkMode(UIDC2, TRANSPARENT);
+	HFONT font, oldFont;
+	font = CreateFont(25, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+		OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+		DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+	oldFont = (HFONT)SelectObject(UIDC2, font);
+
+	for (int i = 0; i < _mM->getVDmon().size(); i++)
+	{
+		IMAGEMANAGER->render("slot", UIDC2, 0 + (i % 2 * 250), 52 + (i / 2 * 110));
+		IMAGEMANAGER->frameRender("Fimg", UIDC2, 8 + (i % 2 * 250), 60 + (i / 2 * 110), _mM->getVDmon()[i].num, 0);
+		IMAGEMANAGER->frameRender("type", UIDC2, 176 + (i % 2 * 250), 62 + (i / 2 * 110), _mM->getVDmon()[i].type % 4, _mM->getVDmon()[i].type / 4);
+		sprintf_s(str, "%s", _mM->getVDmon()[i].name.c_str());
+		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(56 + (i % 2 * 250), 57 + (i / 2 * 110), 100, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		sprintf_s(str, "HP:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].fhp);
+		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(8 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		sprintf_s(str, "ATT:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].power);
+		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(78 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		sprintf_s(str, "SPD:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].atSpd);
+		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(148 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+	}
+	//sprintf_s(str, "%d", _mM->getVDmon().size());
+	//TextOut(UIDC, 100, 200, str, strlen(str));
+	//DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(100, 100, 100, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+
+	if(num>=0)
+		IMAGEMANAGER->render("slot2", UIDC2, 0 + (num % 2 * 250), 52 + (num / 2 * 110));
+	//IMAGEMANAGER->render("slot2", UIDC2, 0 + (i % 2 * 250), 52 + (i / 2 * 110));
+	SelectObject(UIDC2, oldFont);
+	DeleteObject(font);
 }
 
 MapTool::MapTool(){}

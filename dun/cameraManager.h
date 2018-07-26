@@ -15,8 +15,8 @@ private:
 	
 	image * _cameraDC;
 	POINT	_point;
-
-	int _monNum;
+	int		_scroll;
+	int		_monNum;
 	/*
 	image * _cameraDC2;
 	RECT _cameraRc;
@@ -63,12 +63,14 @@ public:
 	// 지우지 말아주세요 setCameraCenter 쓰니까 대각선처리가 부드럽지 못하드라구요 
 	void setCameraX(long x);
 	void setCameraY(long y);
+	void setScroll(int scroll) { _scroll = scroll; }
 	//주석도 자제좀 
 
 	POINT getCameraCenter(void) { return _center; }
 	POINT getCameraPoint(void) { return _point; }
 	image* getCamera(void) { return _camera; }
 	int getMonNum() { return _monNum; }
+	int getScroll() { return _scroll; }
 	void setmMMemoryAddressLink(monsterManager* mM) { _mM = mM; }
 };
 

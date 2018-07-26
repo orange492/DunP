@@ -25,6 +25,7 @@ HRESULT playGround::Image_init(void)
 	IMAGEMANAGER->addImage("slot2", "image/UI/slot2.bmp", 0, 0, 250, 100, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addFrameImage("type", "image/UI/type.bmp", 0, 0, 128, 112, 4, 7, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addFrameImage("Fimg", "image/UI/Fimg.bmp", 0, 0, 120, 120, 3, 3, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addFrameImage("a0", "image/mon/a1.bmp", 0, 0, 680, 180, 10, 3, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addFrameImage("a1", "image/mon/a1.bmp", 0, 0, 680, 180, 10, 3, true, RGB(0, 255, 255));
 
 	//IMAGEMANAGER->addImage("black", "image/UI/Black(1920x1080).bmp", 0, 0, 1920, 1080, true, RGB(255, 0, 255), true);

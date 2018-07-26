@@ -1,7 +1,7 @@
 #pragma once
 class monsterManager
 {
-#define DEXNUM 2
+#define DEXNUM 3
 	enum TYPE	{GRASS, FIRE, WATER};
 
 	struct tagMonster
@@ -11,12 +11,15 @@ class monsterManager
 		string name;
 		TYPE type;
 		POINT size;
-		bool evolution;
+		RECT rc;
 		int fhp;
 		int hp;
 		int power;
 		int spd;
 		int atSpd;
+		int food;
+		bool evolution;
+		bool active;
 		bool dir[4];
 	};
 
@@ -38,7 +41,10 @@ public:
 	void addAmon(int i);
 
 	void dexSetting();
-	void dexSet(int i, image * img, string name, TYPE type, POINT size, bool evo, int fhp, int power, int spd, int atSpd, bool dir0, bool dir1, bool dir2, bool dir3);
+	void eraseDmon(int arrNum);
+	void eraseAmon(int arrNum);
+	void dexSet(int i, image * img, string name, TYPE type, POINT size, int fhp, int power, int spd, int atSpd, int food, bool evo, bool act, bool dir0, bool dir1, bool dir2, bool dir3);
+	void evolution(bool ad, int i);
 	tagMonster getDex(int i) { return _dex[i]; }
 	vector<tagMonster>	getVDmon() { return _vDmon; }
 

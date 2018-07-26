@@ -50,7 +50,7 @@ enum TERRAIN
 // 오브젝트
 enum OBJECT
 {
-	OBJ_NULL, 	OBJ_WALL, OBJ_TREE, OBJ_TRAP,	OBJ_ETC
+	OBJ_NULL, 	OBJ_WALL, OBJ_TREE, OBJ_MON ,OBJ_TRAP,	OBJ_ETC
 };
 
 // 포지션 정의
@@ -60,18 +60,25 @@ enum POS
 	POS_1, POS_2, POS_3, POS_4, POS_5, POS_6, POS_7, POS_8, POS_9, POS_10, POS_11, POS_12, POS_13, POS_14, POS_15, POS_16, POS_17, POS_18
 };
 
+enum MPOS
+{
+	MPOS_1, MPOS_2, MPOS_3, MPOS_4, MPOS_5, MPOS_6, MPOS_7, MPOS_8, MPOS_9
+};
+
 // 타일 구조체
 struct tagTile
 {
 	TERRAIN terrain;			// 지형
 	OBJECT	object;				// 오브젝트
 	POS		position;			//포지션
+	MPOS	monPos;
 	RECT	rc;					// 렉트
 	int		terrainFrameX;		// 지형 프레임 번호
 	int		terrainFrameY;		// 지형 프레임 번호
 	int		objFrameX;			// 오브젝트 프레임 번호
 	int		objFrameY;			// 오브젝트 프레임 번호
-	int		type;
+	int		type;				//몇 번째 종류의 땅/벽/나무인지
+	int		mon;				//몇번째 몬스터가 베치되어있는지
 };
 
 // 타일셋 구조체

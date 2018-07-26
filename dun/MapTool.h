@@ -35,17 +35,17 @@ private:
 	tagCurrentTile	_currentTileO;							//현재 오브젝트타일
 	tagCurrentTile	_currentXY;								//현재 사용가능한 맵크기
 	tagSampleTile	_sampleTile[SAMPLETILEX * SAMPLETILEY];	//샘플타일
-	//DWORD		_attribute[TILEX * TILEY];					// 타일 속성	
+	//DWORD		_attribute[TILEX * TILEY];					//타일 속성	
 
-	RECT		_rc[10];									// 버튼 렉트
+	RECT		_rc[10];									//버튼 렉트
 	SELECT		_select;									//어떤 버튼 선택중인지
 
-	SAVEF _save[3];
-	SAVEF _savef;
-	image* _map;
-	image* _tempImg;
-	image* _minimap[3];
-	int _mapX, _mapY;
+	SAVEF		_save[3];									//슬롯에 저장된 맵 정보
+	SAVEF		_savef;										//템프 세이브
+	image*		_map;										//전체 맵 이미지
+	image*		_tempImg;									//템프이미지
+	image*		_minimap[3];								//미니맵 정보
+	int			_mapX, _mapY;								//미니맵가로세로크기
 	//int			_pos[2];
 	int			_stone[2];									//최대,현재 보유중인 벽돌 수
 	int			_food[2];									//최대,현재 보유중인 식량 수
@@ -54,7 +54,8 @@ private:
 	int			_wall;										//몇번째 벽 선택중인지
 	int			_floor;										//몇번째 바닥 선택중인지
 	int			_tree;										//무슨 나무 선택중인지
-
+	int			_currentMon;								//몇 번째 몬스터 선택중인지
+	
 	bool		_side;										//사이드슬롯 온/오프
 	bool		_canMove;									//탭으로 타일 확인할때 못움직이게
 	bool		_eraser;									//무슨 지우개 선택중인지
@@ -87,6 +88,7 @@ public:
 	void setMinimap2();
 	void drawMap();
 	void drawMap2();
+	void drawList(int num);
 	void setup();
 	virtual void save();											// 세이브
 	void save(int i);
