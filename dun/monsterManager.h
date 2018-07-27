@@ -11,25 +11,30 @@ class monsterManager
 		string name;
 		TYPE type;
 		POINT size;
-		RECT rc;
-		int fhp;
 		int hp;
 		int power;
 		int spd;
 		int atSpd;
 		int food;
 		bool evolution;
-		bool active;
 		bool dir[4];
 	};
 
+	struct tagMon
+	{
+		int num;
+		int hp;
+		RECT rc;
+		bool act;
+	};
+
 	tagMonster _dex[DEXNUM];
-	vector<tagMonster>				_vAmon;
-	vector<tagMonster>::iterator	_viAmon;
-	vector<tagMonster>				_vDmon;
-	vector<tagMonster>::iterator	_viDmon;
-	vector<tagMonster>				_vEmon;
-	vector<tagMonster>::iterator	_viEmon;
+	vector<tagMon>				_vAmon;
+	vector<tagMon>::iterator	_viAmon;
+	vector<tagMon>				_vDmon;
+	vector<tagMon>::iterator	_viDmon;
+	vector<tagMon>				_vEmon;
+	vector<tagMon>::iterator	_viEmon;
 
 public:
 	HRESULT init();
@@ -43,10 +48,10 @@ public:
 	void dexSetting();
 	void eraseDmon(int arrNum);
 	void eraseAmon(int arrNum);
-	void dexSet(int i, image * img, string name, TYPE type, POINT size, int fhp, int power, int spd, int atSpd, int food, bool evo, bool act, bool dir0, bool dir1, bool dir2, bool dir3);
+	void dexSet(int i, image * img, string name, TYPE type, POINT size, int fhp, int power, int spd, int atSpd, int food, bool evo, bool dir0, bool dir1, bool dir2, bool dir3);
 	void evolution(bool ad, int i);
 	tagMonster getDex(int i) { return _dex[i]; }
-	vector<tagMonster>	getVDmon() { return _vDmon; }
+	vector<tagMon>	getVDmon() { return _vDmon; }
 
 	monsterManager();
 	~monsterManager();

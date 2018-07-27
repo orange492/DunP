@@ -12,8 +12,13 @@
 //가로세로길 추가
 //던전입구
 //맵 저장슬롯
+//벽생성 막기, 삭제
 
-
+//몬스터 판매
+//포획몬 정렬
+//체력바
+//공격타일설정
+//애니메이션
 
 HRESULT MapTool::init()
 {
@@ -42,15 +47,8 @@ HRESULT MapTool::init()
 	_eraser = true;
 	_side = true;
 	_stone[0] =_stone[1] = 1000;
+	_food[0] =_food[1] = 1000;
 	_currentMon = -1;
-
-	for (int i = 0; i < TILEX * TILEY; i++)
-	{
-		setTFrame(i, 9, 0);
-		_tiles[i].terrain = TR_NULL;
-		_tiles[i].object = OBJ_NULL;
-		_tiles[i].mon = -1;
-	}
 
 	_mapX = 250, _mapY = 250;
 	for (int i = 0; i < 3; i++)
@@ -86,6 +84,34 @@ void MapTool::update()
 			_mouseTile[1] = _mouseTile[0];
 			_drag = 1;
 		}
+
+		if (_select == MONSTER)
+		{
+			for (int i = 0; i < 14; i++)
+			{
+				if (PtInRect(&RectMake(1414 + (i % 2 * 250), 187 + (i / 2 * 110), 220, 100), _ptMouse) && _mM->getVDmon().size() != i + CAMERAMANAGER->getScroll() * 2)
+				{
+					if (_mM->getVDmon().size() < i) break;
+					if (_currentMon == i + CAMERAMANAGER->getScroll() * 2)
+					{
+						_currentMon = -1;
+						drawList(_currentMon);
+						break;
+					}
+					if (_currentMon != -1 && _currentMon != i + CAMERAMANAGER->getScroll() * 2 && _mM->getVDmon()[_currentMon].num == _mM->getVDmon()[i + CAMERAMANAGER->getScroll() * 2].num)
+					{
+						_mM->evolution(0, _currentMon);
+						_mM->eraseDmon(i + CAMERAMANAGER->getScroll() * 2);
+						_currentMon = -1;
+						drawList(_currentMon);
+						break;
+					}
+					_currentMon = i + CAMERAMANAGER->getScroll() * 2;
+					drawList(_currentMon);
+					break;
+				}
+			}
+		}
 	
 	}
 	else if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON)&&(_drag!=0||_select>4))
@@ -113,9 +139,17 @@ void MapTool::update()
 	{
 		if ((_ptMouse.x < 1400 && _side == true) || _side == false)
 		{
-			_mouseTile[1] = _mouseTile[0];
-			_drag = -1;
+			if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object==OBJ_MON)
+			{
+				cancelMon(_mouseTile[0]);
+			}
+			else
+			{
+				_mouseTile[1] = _mouseTile[0];
+				_drag = -1;
+			}
 		}
+		
 	}
 	else if (KEYMANAGER->isOnceKeyUp(VK_RBUTTON) && _drag != 0)
 	{
@@ -288,97 +322,42 @@ void MapTool::render()
 				DrawText(UIDC, TEXT(str2), strlen(str2), &RectMake(WINSIZEX - 180 + 35, 320 + (i * 260), 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 				IMAGEMANAGER->render("stone", UIDC, WINSIZEX - 185, 320 + (i * 260));
 			}
-			SelectObject(UIDC, oldFont);
-			DeleteObject(font);
+			
 		}
 		
 		if (_select == MONSTER)
 		{
+			int count=0;
 			CAMERAMANAGER->cameraRender(UIDC);
-			for (int i = 0; i < 14; i++)
-			{
-				if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON) && PtInRect(&RectMake(1414 + (i % 2 * 250), 187 + (i / 2 * 110), 220, 100), _ptMouse)&& _mM->getVDmon().size() != i + CAMERAMANAGER->getScroll() * 2)
-				{
-					/*_mM->eraseDmon(i + CAMERAMANAGER->getScroll() * 2);
-					drawList(-1);*/
-					if (_mM->getVDmon().size() < i) continue;
-					if (_currentMon == i + CAMERAMANAGER->getScroll() * 2)
-					{
-						_currentMon = -1;
-						drawList(_currentMon);
-						break;
-					}
-					if (_currentMon!=-1&& _currentMon!= i + CAMERAMANAGER->getScroll() * 2&&_mM->getVDmon()[_currentMon].num == _mM->getVDmon()[i + CAMERAMANAGER->getScroll() * 2].num&&_mM->getVDmon()[_currentMon].evolution == true)
-					{
-						_mM->evolution(0, _currentMon);
-						_mM->eraseDmon(i + CAMERAMANAGER->getScroll() * 2);
-						_currentMon = -1;
-						drawList(_currentMon);
-						break;
-					}
-					_currentMon = i + CAMERAMANAGER->getScroll() * 2;
-					drawList(_currentMon);
-					//IMAGEMANAGER->findImage("slot2")->render(UIDC2, i % 2 * 250, i / 2 * 110);
-					break;
-				}
-			}
-			if (KEYMANAGER->isOnceKeyDown(VK_RBUTTON))
-			{
-				if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON)
-				{
-					if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_2)
-						_mouseTile[0].x -= 1;
-					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_3)
-						_mouseTile[0].x -= 2;
-					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_4)
-					{
-						_mouseTile[0].y -= 1;
-					}
-					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_5)
-					{
-						_mouseTile[0].x -= 1;
-						_mouseTile[0].y -= 1;
-					}
-					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_6)
-					{
-						_mouseTile[0].x -= 2;
-						_mouseTile[0].y -= 1;
-					}
-					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_7)
-						_mouseTile[0].y -= 2;
-					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_8)
-					{
-						_mouseTile[0].x -= 1;
-						_mouseTile[0].y -= 2;
-					}
-					else if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos == MPOS_9)
-					{
-						_mouseTile[0].x -= 2;
-						_mouseTile[0].y -= 2;
-					}
-
-				}
-				_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].mon = -1;
-				for (int i = 0; i<_mM->getVDmon()[_currentMon].size.y; i++)
-					for (int j = 0; j < _mM->getVDmon()[_currentMon].size.x; j++)
-					{
-						_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].object == OBJ_NULL;
-					}
-				
-			}
+			sprintf_s(str, "%d(%d)/100", _monNum+_mM->getVDmon().size(),_monNum);
+			DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 366, 939, 200, 50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 			if (_currentMon >= 0)
 			{
-				for (int i = 0; i < _mM->getVDmon()[_currentMon].size.y; i++)
+				for (int i = 0; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; i++)
 				{
-					for (int j = 0; j < _mM->getVDmon()[_currentMon].size.x; j++)
+					for (int j = 0; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; j++)
 					{
-						IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
+						if (_tiles[_mouseTile[0].x+j + (_mouseTile[0].y+i) * 100].object == OBJ_MON || _tiles[_mouseTile[0].x+j + (_mouseTile[0].y+i) * 100].object == OBJ_TREE || _tiles[_mouseTile[0].x+j + (_mouseTile[0].y+i) * 100].object == OBJ_WALL)
+							count++;
+					}
+				}
+							
+				for (int i = 0; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; i++)
+				{
+					for (int j = 0; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; j++)
+					{
+						if(count>0)
+							IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
+						else
+							IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
 					}
 				}
 			}
-
+			else
+				IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x  + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y ) * 100].rc.top);
 		}
-
+		SelectObject(UIDC, oldFont);
+		DeleteObject(font);
 		/*
 		희진아 화이팅~!~!!!!!
 		*/
@@ -428,8 +407,11 @@ void MapTool::render()
 		}*/
 	}
 	else
-		_canMove = true;
-
+	{
+		if(_canMove==false)
+			_canMove = true;
+	}
+		
 	if (_side == true)
 		IMAGEMANAGER->render("side", DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2);
 }
@@ -557,8 +539,12 @@ void MapTool::setup()
 		_tiles[i].terrainFrameY = 0;
 		_tiles[i].objFrameX = 0;
 		_tiles[i].objFrameY = 0;
-		_tiles[i].terrain = terrainSelect(_tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
+		setTFrame(i, 9, 0);
+		_tiles[i].terrain = TR_NULL;
+		//_tiles[i].terrain = terrainSelect(_tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
 		_tiles[i].object = OBJ_NULL;
+		
+		_tiles[i].mon = -1;
 	}
 }
 
@@ -1068,6 +1054,7 @@ void MapTool::dragMake()
 
 	tagCurrentTile LT = _mouseTile[1];
 	tagCurrentTile RB = _mouseTile[0];
+	tagCurrentTile mouseTile;
 	
 	if (RB.y < LT.y)
 	{
@@ -1088,11 +1075,15 @@ void MapTool::dragMake()
 	int x = RB.x - LT.x;
 	int y = RB.y - LT.y;
 	
-	if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_TREE || _drag == -1 || _stone[1] - count<0)
-		IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
-	else
-		IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
-	
+	if (_select != MONSTER)
+	{
+		if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_TREE || _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON || _drag == -1 || _stone[1] - count < 0)
+			IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
+		else
+			IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
+
+	}
+
 	if (_drag == 11)
 	{
 		RECT rc[3];
@@ -1127,19 +1118,20 @@ void MapTool::dragMake()
 			}
 		}
 	}
-	else if (_drag == 10&&_currentMon!=-1)
+	else if (_drag == 10&&_currentMon!=-1&&_mM->getDex(_mM->getVDmon()[_currentMon].num).food<=_food[1])
 	{
-		for (int i = 0; i < _mM->getVDmon()[_currentMon].size.y; i++)
+		for (int i = 0; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; i++)
 		{
-			for (int j = 0; j < _mM->getVDmon()[_currentMon].size.x; j++)
+			for (int j = 0; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; j++)
 			{
-				if (_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].terrain == TR_FLOOR)
+				if (_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].terrain == TR_FLOOR && _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].object != OBJ_MON)
 				{
-					if (i == _mM->getVDmon()[_currentMon].size.y - 1 && j==_mM->getVDmon()[_currentMon].size.x - 1)
+					if (i == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y - 1 && j== _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x - 1)
 					{
-						_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].mon = _currentMon;
-						for (int k = 0; k < _mM->getVDmon()[_currentMon].size.y; k++)
-							for (int l = 0; l < _mM->getVDmon()[_currentMon].size.x; l++)
+						_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].mon = _mM->getVDmon()[_currentMon].num;
+						//_mM->getVDmon()[_currentMon].active==true;
+						for (int k = 0; k < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; k++)
+							for (int l = 0; l < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; l++)
 							{
 								_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object = OBJ_MON;
 								if (k == 0 && l == 0)
@@ -1161,6 +1153,14 @@ void MapTool::dragMake()
 								else if (k == 2 && l == 2)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_9;
 							}
+						_food[1] -= _mM->getDex(_mM->getVDmon()[_currentMon].num).food;
+						_mM->eraseDmon(_currentMon);
+						_currentMon = -1;
+						drawList(_currentMon);
+						_drag = 0;
+						_monNum++;
+						drawMap();
+						return;
 					}
 				}
 				else
@@ -1190,7 +1190,7 @@ void MapTool::dragMake()
 						count++;
 				}
 				IMAGEMANAGER->findImage("tile")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
-				if (_tiles[temp].object == OBJ_TREE || _drag == -1 || _drag == 7 || _drag == 8)
+				if (_tiles[temp].object == OBJ_TREE || _tiles[temp].object == OBJ_MON|| _drag == -1 || _drag == 7 || _drag == 8)
 				{
 					IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[temp].rc.left, _tiles[temp].rc.top);
 					if (_tiles[temp].object == OBJ_TREE)
@@ -1203,6 +1203,10 @@ void MapTool::dragMake()
 							RB2.y = _currentXY.y + 4;
 						else if (_tiles[temp].position == POS_4)
 							RB2.x = _currentXY.x + 1;
+					}
+					if (_tiles[temp].object == OBJ_MON)
+					{
+						count += 10000;
 					}
 				}
 			}
@@ -1554,6 +1558,11 @@ void MapTool::dragMake()
 				}
 				if (_drag == 7 && _tiles[temp].object != OBJ_TREE)
 				{
+					if (_tiles[temp].object == OBJ_MON)
+					{
+						mouseTile = { LT2.x + j , LT2.y + i };
+						cancelMon(mouseTile);
+					}
 					_tiles[temp].terrainFrameX = 9;
 					_tiles[temp].terrainFrameY = 0;
 					_tiles[temp].objFrameX = NULL;
@@ -1565,6 +1574,11 @@ void MapTool::dragMake()
 				}
 				else if (_drag == 8&& _tiles[temp].object!=OBJ_TREE)
 				{
+					if (_tiles[temp].object == OBJ_MON)
+					{
+						mouseTile = { LT2.x + j , LT2.y + i };
+						cancelMon(mouseTile);
+					}
 					_tiles[temp].terrainFrameX = 9;
 					_tiles[temp].terrainFrameY = 0;
 					_tiles[temp].objFrameX = NULL;
@@ -1676,22 +1690,22 @@ void MapTool::floorDir()
 		if (_tiles[i + 1].terrain == TR_FLOOR && _tiles[i + 1].type == _tiles[i].type) count += 12;
 		if (_tiles[i - 100].terrain == TR_FLOOR && _tiles[i - 100].type == _tiles[i].type) count += 15;
 		if (_tiles[i + 100].terrain == TR_FLOOR && _tiles[i + 100].type == _tiles[i].type) count += 19;
-		if (count == 10)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_17, _tiles[i].type);
-		else if (count == 12)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_15, _tiles[i].type);
-		else if (count == 15)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_18, _tiles[i].type);
-		else if (count == 19)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_10, _tiles[i].type);
-		else if (count == 22)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_16, _tiles[i].type);
-		else if (count == 27)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_7, _tiles[i].type);
-		else if (count == 34)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_14, _tiles[i].type);
-		else if (count == 25)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_9, _tiles[i].type);
-		else if (count == 31)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_1, _tiles[i].type);
-		else if (count == 29)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_3, _tiles[i].type);
-		else if (count == 37)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_8, _tiles[i].type);
-		else if (count == 46)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_4, _tiles[i].type);
-		else if (count == 41)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_2, _tiles[i].type);
-		else if (count == 44)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_6, _tiles[i].type);
-		else if (count == 0)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_12, _tiles[i].type);
-		else if (count == 56)	setPosition(i, TR_FLOOR, OBJ_NULL, POS_5, _tiles[i].type);
+		if (count == 10)	setPosition(i, TR_FLOOR, _tiles[i].object, POS_17, _tiles[i].type);
+		else if (count == 12)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_15, _tiles[i].type);
+		else if (count == 15)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_18, _tiles[i].type);
+		else if (count == 19)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_10, _tiles[i].type);
+		else if (count == 22)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_16, _tiles[i].type);
+		else if (count == 27)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_7, _tiles[i].type);
+		else if (count == 34)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_14, _tiles[i].type);
+		else if (count == 25)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_9, _tiles[i].type);
+		else if (count == 31)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_1, _tiles[i].type);
+		else if (count == 29)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_3, _tiles[i].type);
+		else if (count == 37)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_8, _tiles[i].type);
+		else if (count == 46)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_4, _tiles[i].type);
+		else if (count == 41)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_2, _tiles[i].type);
+		else if (count == 44)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_6, _tiles[i].type);
+		else if (count == 0)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_12, _tiles[i].type);
+		else if (count == 56)	setPosition(i, TR_FLOOR,_tiles[i].object, POS_5, _tiles[i].type);
 		setFloor(i);
 	}
 }
@@ -1837,20 +1851,13 @@ void MapTool::setMinimap2()
 
 void MapTool::drawMap()
 {
-	
+	char str[128];
 	// 지형
 	for (int i = 0; i < TILEX * TILEY; i++)
-	{char str[128];
+	{
 		if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
 			&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
 			fdraw("map", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		
-		if (_tiles[i].mon != -1)
-		{
-			sprintf_s(str, "a%d", _mM->getVDmon()[_tiles[i].mon].num);
-			draw(str, MAP, 896,416);
-			//sprintf_s()
-		}
 	}
 
 	// 오브젝트
@@ -1869,9 +1876,14 @@ void MapTool::drawMap()
 				IMAGEMANAGER->frameRender("tree", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
 				IMAGEMANAGER->frameRender("samplemap", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+			
+			if (_tiles[i].mon != -1)
+			{
+				sprintf_s(str, "a%d", _tiles[i].mon);
+				fdraw(str, MAP, _tiles[i].rc.left, _tiles[i].rc.top);
+			}
 		}
 	}
-	
 }
 
 void MapTool::drawMap2()
@@ -1880,24 +1892,13 @@ void MapTool::drawMap2()
 	// 지형
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
-		//if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
-		//	&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
 		fdraw("map", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		if (_tiles[i].mon != -1)
-		{
-			sprintf_s(str, "a%d", _mM->getVDmon()[_tiles[i].mon].num);
-			fdraw(str, DC, _tiles[i].rc.left, _tiles[i].rc.top);
-			//sprintf_s()
-		}
 	}
 
 	// 오브젝트
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
-		// 오브젝트 속성이 아니면 그리지마
 		if (_tiles[i].object == OBJ_NULL) continue;
-		//if (_tiles[i].rc.left < WINSIZEX + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.top < WINSIZEY + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2
-		//	&& _tiles[i].rc.right > CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 && _tiles[i].rc.bottom > CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2)
 		{
 			if (_tiles[i].object == OBJ_WALL)
 				fdraw("map", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
@@ -1905,6 +1906,11 @@ void MapTool::drawMap2()
 				IMAGEMANAGER->frameRender("tree", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
 				IMAGEMANAGER->frameRender("samplemap", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+		}
+		if (_tiles[i].mon != -1)
+		{
+			sprintf_s(str, "a%d", _tiles[i].mon);
+			fdraw(str, MAP, _tiles[i].rc.left, _tiles[i].rc.top);
 		}
 	}
 }
@@ -1925,14 +1931,14 @@ void MapTool::drawList(int num)
 	{
 		IMAGEMANAGER->render("slot", UIDC2, 0 + (i % 2 * 250), 52 + (i / 2 * 110));
 		IMAGEMANAGER->frameRender("Fimg", UIDC2, 8 + (i % 2 * 250), 60 + (i / 2 * 110), _mM->getVDmon()[i].num, 0);
-		IMAGEMANAGER->frameRender("type", UIDC2, 176 + (i % 2 * 250), 62 + (i / 2 * 110), _mM->getVDmon()[i].type % 4, _mM->getVDmon()[i].type / 4);
-		sprintf_s(str, "%s", _mM->getVDmon()[i].name.c_str());
+		IMAGEMANAGER->frameRender("type", UIDC2, 176 + (i % 2 * 250), 62 + (i / 2 * 110), _mM->getDex(_mM->getVDmon()[i].num).type % 4, _mM->getDex(_mM->getVDmon()[i].num).type / 4);
+		sprintf_s(str, "%s", _mM->getDex(_mM->getVDmon()[i].num).name.c_str());
 		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(56 + (i % 2 * 250), 57 + (i / 2 * 110), 100, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-		sprintf_s(str, "HP:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].fhp);
+		sprintf_s(str, "HP:%d", _mM->getDex(_mM->getVDmon()[i].num).hp, _mM->getDex(_mM->getVDmon()[i].num).power, _mM->getDex(_mM->getVDmon()[i].num).hp);
 		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(8 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-		sprintf_s(str, "ATT:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].power);
+		sprintf_s(str, "ATT:%d", _mM->getDex(_mM->getVDmon()[i].num).hp, _mM->getDex(_mM->getVDmon()[i].num).power, _mM->getDex(_mM->getVDmon()[i].num).power);
 		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(78 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-		sprintf_s(str, "SPD:%d", _mM->getVDmon()[i].fhp, _mM->getVDmon()[i].power, _mM->getVDmon()[i].atSpd);
+		sprintf_s(str, "SPD:%d", _mM->getDex(_mM->getVDmon()[i].num).hp, _mM->getDex(_mM->getVDmon()[i].num).power, _mM->getDex(_mM->getVDmon()[i].num).atSpd);
 		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(148 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 	}
 	//sprintf_s(str, "%d", _mM->getVDmon().size());
@@ -1944,6 +1950,57 @@ void MapTool::drawList(int num)
 	//IMAGEMANAGER->render("slot2", UIDC2, 0 + (i % 2 * 250), 52 + (i / 2 * 110));
 	SelectObject(UIDC2, oldFont);
 	DeleteObject(font);
+}
+
+void MapTool::cancelMon(tagCurrentTile i)
+{
+	tagCurrentTile mouseTile=i;
+	//if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON)
+	/*_mM->eraseDmon(i + CAMERAMANAGER->getScroll() * 2);
+	drawList(-1);*/
+	if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_2)
+		mouseTile.x -= 1;
+	else if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_3)
+		mouseTile.x -= 2;
+	else if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_4)
+		mouseTile.y -= 1;
+	else if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_5)
+	{
+		mouseTile.x -= 1;
+		mouseTile.y -= 1;
+	}
+	else if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_6)
+	{
+		mouseTile.x -= 2;
+		mouseTile.y -= 1;
+	}
+	else if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_7)
+		mouseTile.y -= 2;
+	else if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_8)
+	{
+		mouseTile.x -= 1;
+		mouseTile.y -= 2;
+	}
+	else if (_tiles[mouseTile.x + (mouseTile.y) * 100].monPos == MPOS_9)
+	{
+		mouseTile.x -= 2;
+		mouseTile.y -= 2;
+
+	}
+	//if con
+	for (int i = 0; i < _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).size.y; i++)
+	{
+		for (int j = 0; j < _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).size.x; j++)
+		{
+			_tiles[mouseTile.x + j + (mouseTile.y + i) * 100].object = OBJ_NULL;
+		}
+	}
+	_mM->addDmon(_tiles[mouseTile.x + (mouseTile.y) * 100].mon);
+	_food[1] += _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).food;
+	_tiles[mouseTile.x + (mouseTile.y) * 100].mon = -1;
+	drawList(-1);
+	drawMap();
+	_monNum--;
 }
 
 MapTool::MapTool(){}

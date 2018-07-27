@@ -38,6 +38,7 @@ private:
 	//DWORD		_attribute[TILEX * TILEY];					//타일 속성	
 
 	RECT		_rc[10];									//버튼 렉트
+	RECT		_mrc[14];									//몬스터 버튼 렉트
 	SELECT		_select;									//어떤 버튼 선택중인지
 
 	SAVEF		_save[3];									//슬롯에 저장된 맵 정보
@@ -49,6 +50,7 @@ private:
 	//int			_pos[2];
 	int			_stone[2];									//최대,현재 보유중인 벽돌 수
 	int			_food[2];									//최대,현재 보유중인 식량 수
+	int			_monNum;									//현재 배치 몬스터 수
 	int			_money;										//현재 보유중인 돈의 양
 	int			_drag;										//드래그 후 _select에따라 다른 기능 실행
 	int			_wall;										//몇번째 벽 선택중인지
@@ -89,6 +91,7 @@ public:
 	void drawMap();
 	void drawMap2();
 	void drawList(int num);
+	void cancelMon(tagCurrentTile i);
 	void setup();
 	virtual void save();											// 세이브
 	void save(int i);
