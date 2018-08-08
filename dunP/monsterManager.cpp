@@ -85,7 +85,7 @@ void monsterManager::addEmon(int id,int i, int dir, vector<int> road)
 {
 	monster*	mon;
 	mon = new monster;
-	mon->init(id, i,_dex[i],_dex[i].hp, dir, road);
+	mon->init(id, _dex[i],_dex[i].hp, dir, road);
 
 	_vEmon.push_back(mon);
 }

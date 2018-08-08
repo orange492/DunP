@@ -10,6 +10,7 @@ HRESULT playGround::Image_init(void)
 	IMAGEMANAGER->addFrameImage("tree", "image/map/tree(12,36).bmp", 0, 0, 384, 1152, 12, 36, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("tile", "image/map/tile.bmp", 0, 0, 32, 32, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("tile2", "image/map/tile2.bmp", 0, 0, 32, 32, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("tile3", "image/map/tile3.bmp", 0, 0, 32, 32, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("road", "image/map/road.bmp", 0, 0, 32, 32, true, RGB(0, 255, 255));
 	
 	/////////////////////////UI

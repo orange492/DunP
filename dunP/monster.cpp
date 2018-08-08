@@ -2,12 +2,11 @@
 #include "monster.h"
 
 
-HRESULT monster::init(int id,int num, tagMonster dex, int hp, int dir, vector<int> road)
+HRESULT monster::init(int id,tagMonster dex, int hp, int dir, vector<int> road)
 {
 	_hpbar = new progressBar;
 	_dex = dex;
 	_act = true;
-	_num = num;
 	_hp = hp;
 	_count = 0;
 	_dir = (DIR)dir;
@@ -120,7 +119,7 @@ void monster::move()
 void monster::render()
 {
 	char str[128];
-	sprintf_s(str, "%d",_num);
+	sprintf_s(str, "%d",_dex.num);
 
 	++_count;
 	if (_count%10 == 0)
@@ -130,7 +129,7 @@ void monster::render()
 	}
 	int currentX;
 
-	_num==0 ? _currentX == 3 ? currentX = 2 : currentX = _currentX : _currentX == 3 ? currentX = 1 : currentX = _currentX;
+	_dex.num ==0 ? _currentX == 3 ? currentX = 2 : currentX = _currentX : _currentX == 3 ? currentX = 1 : currentX = _currentX;
 	
 	_rc = RectMake(_tile.x, _tile.y, TILESIZE, TILESIZE);
 	fdraw(str, DC, _rc.left, _rc.top, currentX,_dir);

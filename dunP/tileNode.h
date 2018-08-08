@@ -62,7 +62,7 @@ enum POS
 
 enum MPOS
 {
-	MPOS_1, MPOS_2, MPOS_3, MPOS_4, MPOS_5, MPOS_6, MPOS_7, MPOS_8, MPOS_9
+	MPOS_0, MPOS_1, MPOS_2, MPOS_3, MPOS_4, MPOS_5, MPOS_6, MPOS_7, MPOS_8, MPOS_9
 };
 
 // 타일 구조체
@@ -78,7 +78,7 @@ struct tagTile
 	int		objFrameX;			// 오브젝트 프레임 번호
 	int		objFrameY;			// 오브젝트 프레임 번호
 	int		type;				//몇 번째 종류의 땅/벽/나무인지
-	int		mon;				//몇번째 몬스터가 베치되어있는지
+	int		mon;				//어떤 몬스터가 베치되어있는지
 };
 
 // 타일셋 구조체
@@ -94,12 +94,6 @@ struct tagCurrentTile
 {
 	int x;
 	int y;
-};
-
-struct loca
-{
-	float x;
-	float y;
 };
 
 enum TYPE { GRASS, FIRE, WATER };

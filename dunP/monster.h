@@ -10,12 +10,10 @@ class monster : public gameNode
 	//TYPE _type;
 	progressBar* _hpbar;
 	tagMonster _dex;
-	loca	_tile;
+	POINTFLOAT	_tile;
 	RECT _rc;
 	DIR _dir;
-	int _num;
 	int _hp;
-	int _spd;
 	//int _power;
 	//int _spd;
 	//int _atSpd;
@@ -29,7 +27,7 @@ class monster : public gameNode
 	vector<int>::iterator	_viRoad;
 
 public:
-	HRESULT init(int id, int num, tagMonster dex, int hp, int dir, vector<int> road);
+	HRESULT init(int id, tagMonster dex, int hp, int dir, vector<int> road);
 	void release();
 	void update();
 	void move();
