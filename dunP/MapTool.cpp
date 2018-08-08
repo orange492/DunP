@@ -193,7 +193,7 @@ void MapTool::update()
 	{
 		if ((_ptMouse.x < 1400 && _side == true) || _side == false)
 		{
-			if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object==OBJ_MON)
+			if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object==OBJ_MON&& _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos!=MPOS_0)
 			{
 				cancelMon(_mouseTile[0],false);
 			}
@@ -396,9 +396,9 @@ void MapTool::render()
 					}
 				}
 							
-				for (int i = 0; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; i++)
+				for (int i = -1; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y+1; i++)
 				{
-					for (int j = 0; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; j++)
+					for (int j = -1; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x+1; j++)
 					{
 						if(count>0)
 							IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
@@ -1216,28 +1216,31 @@ void MapTool::dragMake()
 					{
 						_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].mon = _mM->getVDmon()[_currentMon].num;
 						//_mM->getVDmon()[_currentMon].active==true;
-						for (int k = 0; k < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; k++)
-							for (int l = 0; l < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; l++)
+						for (int k = -1; k < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y+1; k++)
+							for (int l = -1; l < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x+1; l++)
 							{
-								_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object = OBJ_MON;
+								if(_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object==OBJ_NULL)
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object = OBJ_MON;
 								if (k == 0 && l == 0)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_1;
-								else if (k == 0 && l == 1)
+								else if (k == 0 && l == 1&& _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>1)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_2;
-								else if (k == 0 && l == 2)
+								else if (k == 0 && l == 2 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>2)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_3;
-								else if (k == 1 && l == 0)
+								else if (k == 1 && l == 0 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y>1)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_4;
-								else if (k == 1 && l == 1)
+								else if (k == 1 && l == 1 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>1 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y>1)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_5;
-								else if (k == 1 && l == 2)
+								else if (k == 1 && l == 2 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>2 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y>1)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_6;
-								else if (k == 2 && l == 0)
+								else if (k == 2 && l == 0 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y>2)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_7;
-								else if (k == 2 && l == 1)
+								else if (k == 2 && l == 1 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>1 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y>2)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_8;
-								else if (k == 2 && l == 2)
+								else if (k == 2 && l == 2 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>2 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y>2)\
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_9;
+								else
+									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_0;
 							}
 						_food[1] -= _mM->getDex(_mM->getVDmon()[_currentMon].num).food;
 
@@ -1651,17 +1654,18 @@ void MapTool::dragMake()
 				}
 				if (_drag == 7 && _tiles[temp].object != OBJ_TREE)
 				{
-					if (_tiles[temp].object == OBJ_MON&&(i==0||j==0))
+					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos != MPOS_0 &&(i==0||j==0))
 					{
 						mouseTile = { LT2.x + j , LT2.y + i };
 						cancelMon(mouseTile,true);
 					}
 					else if (_tiles[temp].mon != -1)
 					{
-						for (int i = 0; i < _mM->getDex(_tiles[temp].mon).size.y; i++)
+						for (int i = -1; i < _mM->getDex(_tiles[temp].mon).size.y+1; i++)
 						{
-							for (int j = 0; j < _mM->getDex(_tiles[temp].mon).size.x; j++)
+							for (int j = -1; j < _mM->getDex(_tiles[temp].mon).size.x+1; j++)
 							{
+								if(_tiles[temp].object==OBJ_MON)
 								_tiles[temp].object = OBJ_NULL;
 							}
 						}
@@ -1685,18 +1689,19 @@ void MapTool::dragMake()
 				}
 				else if (_drag == 8&& _tiles[temp].object!=OBJ_TREE)
 				{
-					if (_tiles[temp].object == OBJ_MON && (i == 0 || j == 0))
+					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos!=MPOS_0 && (i == 0 || j == 0))
 					{
 						mouseTile = { LT2.x + j , LT2.y + i };
 						cancelMon(mouseTile, true);
 					}
 					else if (_tiles[temp].mon != -1)
 					{
-						for (int i = 0; i < _mM->getDex(_tiles[temp].mon).size.y; i++)
+						for (int i = -1; i < _mM->getDex(_tiles[temp].mon).size.y+1; i++)
 						{
-							for (int j = 0; j < _mM->getDex(_tiles[temp].mon).size.x; j++)
+							for (int j = -1; j < _mM->getDex(_tiles[temp].mon).size.x+1; j++)
 							{
-								_tiles[temp].object = OBJ_NULL;
+								if (_tiles[temp].object == OBJ_MON)
+									_tiles[temp].object = OBJ_NULL;
 							}
 						}
 						_food[1] += _mM->getDex(_tiles[temp].mon).food;
@@ -2112,11 +2117,12 @@ void MapTool::cancelMon(tagCurrentTile i, bool drag)
 	if (_player == mouseTile.x + (mouseTile.y) * 100)
 		_player = 0;
 
-	for (int i = 0; i < _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).size.y; i++)
+	for (int i = -1; i < _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).size.y+1; i++)
 	{
-		for (int j = 0; j < _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).size.x; j++)
+		for (int j = -1; j < _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).size.x+1; j++)
 		{
-			_tiles[mouseTile.x + j + (mouseTile.y + i) * 100].object = OBJ_NULL;
+			if (_tiles[mouseTile.x + j + (mouseTile.y + i) * 100].object == OBJ_MON)
+				_tiles[mouseTile.x + j + (mouseTile.y + i) * 100].object = OBJ_NULL;
 		}
 	}
 	_mM->addDmon(_tiles[mouseTile.x + (mouseTile.y) * 100].mon);
