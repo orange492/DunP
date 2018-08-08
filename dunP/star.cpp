@@ -31,7 +31,7 @@ void star::update()
 {
 	if (KEYMANAGER->isOnceKeyDown('Z'))
 	{
-		findRoad(603, 805);
+		//findRoad(603, 805);
 	}
 }
 
@@ -79,7 +79,7 @@ void star::render()
 	//DeleteObject(font);
 }
 
-void star::setTiles(int start, int end)
+void star::setTiles(int start, int end, int endStart, int endX, int endY)
 {
 	if (_vList.size() > 0)
 	{
@@ -112,7 +112,20 @@ void star::setTiles(int start, int end)
 			if ((_mapTool->getTiles()[j + i * TILEX].object != OBJ_NULL || _mapTool->getTiles()[j + i * TILEX].terrain == TR_NULL) && j + i * TILEX != end)
 			{
 				//if(_mapTool->getTiles()[j + i * TILEX].object==OBJ_MON&& _mapTool->getTiles()[j + i * TILEX].monPos==MPOS_0)
-				node.type = WALL;
+				//if(j + i * TILEX == end-1|| j + i * TILEX == end - 99||j + i * TILEX == end - 100||j + i * TILEX == end - 101 || j + i * TILEX == end +1 || j + i * TILEX == end + 99 || j + i * TILEX == end + 100 || j + i * TILEX == end + 101)
+				if (_mapTool->getTiles()[j + i * TILEX].object == OBJ_MON)
+				{
+					for (int k = 0; k < endX+2; k++)
+					{
+						for (int l = 0; l < endY+2; l++)
+						{
+							if (j + i * TILEX == endStart+l+k*100)
+								node.type = BLANK;
+						}
+					}
+				}
+				else
+					node.type = WALL;
 			}
 			else if (j + i * TILEX == start)
 			{
@@ -215,7 +228,7 @@ void star::addOpenList(int num, bool side)
 		int Road = num;
 		while (_vList[Road].type != START)
 		{
-			if(Road!=num)
+			if(Road!=num/*&&_mapTool->getTiles()[Road].object==OBJ_MON*/)
 				_vRoad.push_back(Road);
 			Road = _vList[Road].parents;
 		}
@@ -235,9 +248,9 @@ int star::setH(int x1, int y1, int x2, int y2)
 	return 10 * (x + y);
 }
 
-vector<int> star::findRoad(int start, int end)
+vector<int> star::findRoad(int start, int end, int endStart, int endX,int endY)
 {
-	setTiles(start, end);
+	setTiles(start, end, endStart, endX,endY);
 	while (_vRoad.size() == 0)
 	{
 		pathFinder();

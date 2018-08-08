@@ -84,8 +84,13 @@ void MapTool::update()
 	{
 		int rand=0;
 		int dir = 0;
+		int player=_player;
+		if (_mM->getDex(_tiles[_player].mon).size.x > 2)
+			player += 1;
+		if (_mM->getDex(_tiles[_player].mon).size.y > 2)
+			player += 100;
 		rand = RND->getInt(_vDoor.size());
-		while(_star->findRoad(_vDoor[rand], _player-101).size()==0)
+		while(_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y).size()==0)
 			rand = RND->getInt(_vDoor.size());
 		if (_tiles[_vDoor[rand] - TILEX].terrain == TR_NULL)
 			dir = 0;
@@ -95,7 +100,7 @@ void MapTool::update()
 			dir = 2;
 		if (_tiles[_vDoor[rand] -1].terrain == TR_NULL)
 			dir = 3;
-		_mM->addEmon(0,1, dir,_star->findRoad(_vDoor[rand], _player-101));
+		_mM->addEmon(0,1, dir,_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
 	}
 
 	if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
@@ -2208,6 +2213,11 @@ void MapTool::findRoad()
 {
 	vector<int>				_vTemp;
 	vector<int>::iterator	_viTemp;
+	int player = _player;
+	if (_mM->getDex(_tiles[_player].mon).size.x > 2)
+		player += 1;
+	if (_mM->getDex(_tiles[_player].mon).size.y > 2)
+		player += 100;
 
 	if (_player == 0) return;
 	if (_vRoad.size() > 0)
@@ -2221,7 +2231,7 @@ void MapTool::findRoad()
 	if (_vDoor.size() < 1) return;
 	for (_viDoor = _vDoor.begin(); _viDoor != _vDoor.end(); _viDoor++)
 	{
-		_vTemp = _star->findRoad(*_viDoor, _player-101);
+		_vTemp = _star->findRoad(*_viDoor, player,_player-101,_mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y);
 		for (_viTemp = _vTemp.begin(); _viTemp != _vTemp.end(); _viTemp++)
 		{
 			_vRoad.push_back(*_viTemp);

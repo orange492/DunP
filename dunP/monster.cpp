@@ -38,6 +38,7 @@ void monster::update()
 
 void monster::move()
 {
+	if (_vRoad[_vRoad.size() - 2])
 	if (_vRoad[_vRoad.size() - 2] - _vRoad[_vRoad.size() - 1] == 1)
 	{
 		_dir = RIGHT;

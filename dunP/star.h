@@ -41,11 +41,11 @@ public:
 	void update();
 	void render();
 
-	void setTiles(int start, int end);
+	void setTiles(int start, int end, int endStart, int endX, int endY);
 	void pathFinder();
 	void addOpenList(int num, bool side);
 	int setH(int x1, int y1, int x2, int y2);
-	vector<int>	 findRoad(int start, int end);
+	vector<int> findRoad(int start, int end, int endStart, int endX, int endY);
 	void setmMMemoryAddressLink(MapTool* mt) { _mapTool = mt; }
 };
 
