@@ -11,6 +11,7 @@ HRESULT monster::init(int id,tagMonster dex, int hp, int dir, vector<int> road)
 	_count = 0;
 	_dir = (DIR)dir;
 	_vRoad = road;
+	_vRoad = road;
 	int x=_vRoad[_vRoad.size()-1]%100;
 	int y=_vRoad[_vRoad.size()-1]/100;
 	_tile = {(float)x*TILESIZE,(float)y*TILESIZE };

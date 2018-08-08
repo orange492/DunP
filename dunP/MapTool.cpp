@@ -85,7 +85,7 @@ void MapTool::update()
 		int rand=0;
 		int dir = 0;
 		rand = RND->getInt(_vDoor.size());
-		while(_star->findRoad(_vDoor[rand], _player).size()==0)
+		while(_star->findRoad(_vDoor[rand], _player-101).size()==0)
 			rand = RND->getInt(_vDoor.size());
 		if (_tiles[_vDoor[rand] - TILEX].terrain == TR_NULL)
 			dir = 0;
@@ -95,7 +95,7 @@ void MapTool::update()
 			dir = 2;
 		if (_tiles[_vDoor[rand] -1].terrain == TR_NULL)
 			dir = 3;
-		_mM->addEmon(0,1, dir,_star->findRoad(_vDoor[rand], _player));
+		_mM->addEmon(0,1, dir,_star->findRoad(_vDoor[rand], _player-101));
 	}
 
 	if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
@@ -387,11 +387,17 @@ void MapTool::render()
 			DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 366, 939, 200, 50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 			if (_currentMon >= 0)
 			{
-				for (int i = 0; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; i++)
+				for (int i = -1; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y+1; i++)
 				{
-					for (int j = 0; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; j++)
+					for (int j = -1; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x+1; j++)
 					{
-						if (_tiles[_mouseTile[0].x+j + (_mouseTile[0].y+i) * 100].object == OBJ_MON || _tiles[_mouseTile[0].x+j + (_mouseTile[0].y+i) * 100].object != OBJ_NULL|| _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].terrain != TR_FLOOR)
+						if (i == -1 || i == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y || j == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x || j == -1)
+						{
+							if (_mouseTile[0].x < 1 || _mouseTile[0].y < 1) continue;
+							if (_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].object == OBJ_MON)
+								count++;
+						}
+						else if (_tiles[_mouseTile[0].x+j + (_mouseTile[0].y+i) * 100].object == OBJ_MON || _tiles[_mouseTile[0].x+j + (_mouseTile[0].y+i) * 100].object != OBJ_NULL|| _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].terrain != TR_FLOOR)
 							count++;
 					}
 				}
@@ -400,10 +406,24 @@ void MapTool::render()
 				{
 					for (int j = -1; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x+1; j++)
 					{
+						if (_mouseTile[0].x < 1 || _mouseTile[0].y < 1) continue;
 						if(count>0)
 							IMAGEMANAGER->findImage("tile2")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
 						else
-							IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
+						{
+							IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);	
+							if (i == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y)
+							{
+								for (int i = -1; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y + 1; i++)
+								{
+									for (int j = -1; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x + 1; j++)
+									{
+										if (!(i == -1 || i == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y || j == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x || j == -1))
+											IMAGEMANAGER->findImage("tile3")->render(DC, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.left, _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].rc.top);
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -1206,24 +1226,31 @@ void MapTool::dragMake()
 	}
 	else if (_drag == 10&&_currentMon!=-1&&_mM->getDex(_mM->getVDmon()[_currentMon].num).food<=_food[1])
 	{
-		for (int i = 0; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y; i++)
+		for (int i = -1; i < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y+1; i++)
 		{
-			for (int j = 0; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x; j++)
+			if (_mouseTile[0].x < 1 || _mouseTile[0].y < 1) continue;
+			for (int j = -1; j < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x+1; j++)
 			{
-				if (_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].terrain == TR_FLOOR && _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].object != OBJ_MON)
+				if (i == -1 || i == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y || j == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x || j == -1)
 				{
-					if (i == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y - 1 && j== _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x - 1)
+					if (_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].object == OBJ_MON)
+					{
+						_drag = 0;
+						drawMap();
+						return;
+					}
+					if (i == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y && j == _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x)
 					{
 						_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].mon = _mM->getVDmon()[_currentMon].num;
 						//_mM->getVDmon()[_currentMon].active==true;
-						for (int k = -1; k < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y+1; k++)
-							for (int l = -1; l < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x+1; l++)
+						for (int k = -1; k < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.y + 1; k++)
+							for (int l = -1; l < _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x + 1; l++)
 							{
-								if(_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object==OBJ_NULL)
+								if (_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object == OBJ_NULL)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].object = OBJ_MON;
 								if (k == 0 && l == 0)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_1;
-								else if (k == 0 && l == 1&& _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>1)
+								else if (k == 0 && l == 1 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>1)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_2;
 								else if (k == 0 && l == 2 && _mM->getDex(_mM->getVDmon()[_currentMon].num).size.x>2)
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_3;
@@ -1256,6 +1283,10 @@ void MapTool::dragMake()
 						drawMap();
 						return;
 					}
+				}
+				else if (_tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].terrain == TR_FLOOR && _tiles[_mouseTile[0].x + j + (_mouseTile[0].y + i) * 100].object != OBJ_MON)
+				{
+					
 				}
 				else
 				{
@@ -1659,7 +1690,7 @@ void MapTool::dragMake()
 						mouseTile = { LT2.x + j , LT2.y + i };
 						cancelMon(mouseTile,true);
 					}
-					else if (_tiles[temp].mon != -1)
+				/*	else if (_tiles[temp].mon != -1)
 					{
 						for (int i = -1; i < _mM->getDex(_tiles[temp].mon).size.y+1; i++)
 						{
@@ -1673,7 +1704,7 @@ void MapTool::dragMake()
 						_mM->addDmon(_tiles[temp].mon);
 						_tiles[temp].mon = -1;
 						_monNum--;
-					}
+					}*/
 
 					_tiles[temp].terrainFrameX = 9;
 					_tiles[temp].terrainFrameY = 0;
@@ -1694,7 +1725,7 @@ void MapTool::dragMake()
 						mouseTile = { LT2.x + j , LT2.y + i };
 						cancelMon(mouseTile, true);
 					}
-					else if (_tiles[temp].mon != -1)
+					/*else if (_tiles[temp].mon != -1)
 					{
 						for (int i = -1; i < _mM->getDex(_tiles[temp].mon).size.y+1; i++)
 						{
@@ -1708,7 +1739,7 @@ void MapTool::dragMake()
 						_mM->addDmon(_tiles[temp].mon);
 						_tiles[temp].mon = -1;
 						_monNum--;
-					}
+					}*/
 
 					_tiles[temp].terrainFrameX = 9;
 					_tiles[temp].terrainFrameY = 0;
@@ -2023,6 +2054,9 @@ void MapTool::drawMap()
 				sprintf_s(str, "a%d", _tiles[i].mon);
 				fdraw(str, MAP, _tiles[i].rc.left, _tiles[i].rc.top);
 			}
+
+			if (_tiles[i].object == OBJ_MON && _tiles[i].monPos == MPOS_0)
+				draw("tile", MAP, _tiles[i].rc.left, _tiles[i].rc.top);
 		}
 	}
 	if (_vRoad.size() > 0)
@@ -2187,7 +2221,7 @@ void MapTool::findRoad()
 	if (_vDoor.size() < 1) return;
 	for (_viDoor = _vDoor.begin(); _viDoor != _vDoor.end(); _viDoor++)
 	{
-		_vTemp = _star->findRoad(*_viDoor, _player);
+		_vTemp = _star->findRoad(*_viDoor, _player-101);
 		for (_viTemp = _vTemp.begin(); _viTemp != _vTemp.end(); _viTemp++)
 		{
 			_vRoad.push_back(*_viTemp);

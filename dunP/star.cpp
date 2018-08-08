@@ -109,8 +109,11 @@ void star::setTiles(int start, int end)
 			node.parents = node.F = node.G = node.open = 0;
 			node.H = setH(j,i,x,y);
 
-			if ((_mapTool->getTiles()[j + i * TILEX].object != OBJ_NULL|| _mapTool->getTiles()[j + i * TILEX].terrain==TR_NULL)&& j + i * TILEX!=end)
+			if ((_mapTool->getTiles()[j + i * TILEX].object != OBJ_NULL || _mapTool->getTiles()[j + i * TILEX].terrain == TR_NULL) && j + i * TILEX != end)
+			{
+				//if(_mapTool->getTiles()[j + i * TILEX].object==OBJ_MON&& _mapTool->getTiles()[j + i * TILEX].monPos==MPOS_0)
 				node.type = WALL;
+			}
 			else if (j + i * TILEX == start)
 			{
 				node.type = START;
