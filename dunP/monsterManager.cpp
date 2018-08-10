@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "monsterManager.h"
+#include "MapTool.h"
 
 
 HRESULT monsterManager::init()
@@ -33,8 +34,27 @@ void monsterManager::render()
 {
 	for (_viEmon = _vEmon.begin(); _viEmon != _vEmon.end(); ++_viEmon)
 	{
-		if((*_viEmon)->getAct()==true)
-			(*_viEmon)->render();
+		if((*_viEmon)->getRoad().size() == 0)
+		{
+			if (_mapTool->getTiles()[(*_viEmon)->getLoca() - 1].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() - 1].monPos != MPOS_0)
+				(*_viEmon)->setDir(LEFT);
+			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() + 1].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() + 1].monPos != MPOS_0)
+				(*_viEmon)->setDir(RIGHT);
+			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() - 100].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() - 100].monPos != MPOS_0)
+				(*_viEmon)->setDir(UP);
+			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() + 100].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() + 100].monPos != MPOS_0)
+				(*_viEmon)->setDir(DOWN);
+			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() - 101].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() - 101].monPos != MPOS_0)
+				(*_viEmon)->setDir(LT);
+			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() - 99].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() - 99].monPos != MPOS_0)
+				(*_viEmon)->setDir(RT);
+			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() + 101].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() + 101].monPos != MPOS_0)
+				(*_viEmon)->setDir(RB);
+			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() +99].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() +99].monPos != MPOS_0)
+				(*_viEmon)->setDir(LB);
+		}	
+		//if((*_viEmon)->getAct()==true)
+		(*_viEmon)->render();
 	}
 }
 
@@ -102,12 +122,12 @@ void monsterManager::eraseAmon(int arrNum)
 
 void monsterManager::dexSetting()
 {
-	dexSet(0, IMAGEMANAGER->findImage("a0"), "이상해씨", GRASS, PointMake(1, 1), 10, 10, 1, 1,5, true, true, true, true, true);
-	dexSet(1, IMAGEMANAGER->findImage("a1"), "이상해풀", GRASS, PointMake(2, 2), 15, 15, 0.9, 0.9,10, true, true, true, true, true);
-	dexSet(2, IMAGEMANAGER->findImage("a2"), "이상해꽃", GRASS, PointMake(3, 3), 20, 20, 0.8, 0.8,15, false, true, true, true, true);
+	dexSet(0, IMAGEMANAGER->findImage("a0"), "이상해씨", GRASS, PointMake(1, 1), 10,10, 10, 10, 1, 1, 5, true, true, true, true, true);
+	dexSet(1, IMAGEMANAGER->findImage("a1"), "이상해풀", GRASS, PointMake(2, 2), 10,30, 15, 15, 0.9, 0.9,10, true, true, true, true, true);
+	dexSet(2, IMAGEMANAGER->findImage("a2"), "이상해꽃", GRASS, PointMake(3, 3), 7,18, 20, 20, 0.8, 0.8,15, false, true, true, true, true);
 }
 
-void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT size, int fhp, int power, float spd, float atSpd,int food, bool evo, bool dir0, bool dir1,bool dir2,bool dir3)
+void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food, bool evo, bool dir0, bool dir1, bool dir2, bool dir3)
 {
 	_dex[i].num = i;
 //	_dex[i].img = new image;
@@ -115,6 +135,8 @@ void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT siz
 	_dex[i].name = name;
 	_dex[i].type = type;
 	_dex[i].size = size;
+	_dex[i].frameX = frameX;
+	_dex[i].frameNum = frameNum;
 	_dex[i].hp = fhp;
 	_dex[i].power = power;
 	_dex[i].spd = spd;

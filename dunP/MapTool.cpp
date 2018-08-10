@@ -14,6 +14,7 @@
 //맵 저장슬롯
 //벽생성 막기, 삭제
 //몬스터도같이세이브
+//애니메이션
 
 //체력바
 
@@ -21,9 +22,9 @@
 //듀토리얼
 //플레이어
 //랜덤맵
-
 //공격타일설정
-//애니메이션
+//탭키
+//죽으면파이트해제,방향
 
 HRESULT MapTool::init()
 {
@@ -80,7 +81,19 @@ void MapTool::release(){}
 
 void MapTool::update()
 {
-	if (KEYMANAGER->isOnceKeyDown('Q'))
+	if (KEYMANAGER->isOnceKeyDown('Z'))
+	{
+		for (_viMon = _vMon.begin(); _viMon != _vMon.end();)
+		{
+			_viMon = _vMon.erase(_viMon);
+		}
+		for (int i = 0; i < TILEX * TILEY; i++)
+		{
+			if (_tiles[i].mon != -1)
+				setMon(i);
+		}
+	}
+	if (KEYMANAGER->isOnceKeyDown('X'))
 	{
 		int rand=0;
 		int dir = 0;
@@ -145,7 +158,7 @@ void MapTool::update()
 			}
 		}
 
-		if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON)
+		if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON&& _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos!=MPOS_0)
 		{
 			tagCurrentTile mouseTile = _mouseTile[0];
 			mouseTile = findMon(mouseTile);
@@ -241,7 +254,8 @@ void MapTool::update()
 	_mouseTile[0].x = getMemDCPoint().x / 32;
 	_mouseTile[0].y = getMemDCPoint().y / 32;
 	//}
-
+	monFrame();
+	monUpdate();
 }
 
 void MapTool::render()
@@ -453,28 +467,34 @@ void MapTool::render()
 
 	if (KEYMANAGER->isStayKeyDown(VK_TAB))
 	{
-		_canMove = false;
-
-		//Rectangle(DC,_tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
-		char str[128];
-		
-		//TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
-		SetTextColor(DC, RGB(255, 255, 255));
-		SetBkMode(DC, TRANSPARENT);
-		HFONT font, oldFont;
-		font = CreateFont(15, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
-			OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
-			DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
-		oldFont = (HFONT)SelectObject(DC, font);
-
-		for (int i = 0; i < TILEX * TILEY; i++)
+		for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
 		{
-			sprintf_s(str, "%d,%d", i % 100, i / 100);
-			DrawText(DC, TEXT(str), strlen(str), &_tiles[i].rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			Rectangle(DC, (*_viMon).rc.left, (*_viMon).rc.top, (*_viMon).rc.right, (*_viMon).rc.bottom);
 		}
 
-		SelectObject(DC, oldFont);
-		DeleteObject(font);
+		//_canMove = false;
+
+		////Rectangle(DC,_tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
+		//char str[128];
+		//
+		////TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
+		//SetTextColor(DC, RGB(255, 255, 255));
+		//SetBkMode(DC, TRANSPARENT);
+		//HFONT font, oldFont;
+		//font = CreateFont(15, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+		//	OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+		//	DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+		//oldFont = (HFONT)SelectObject(DC, font);
+
+		//for (int i = 0; i < TILEX * TILEY; i++)
+		//{
+		//	sprintf_s(str, "%d,%d", i % 100, i / 100);
+		//	DrawText(DC, TEXT(str), strlen(str), &_tiles[i].rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		//}
+
+		//SelectObject(DC, oldFont);
+		//DeleteObject(font);
+
 		/*for (int i = 0; i < TILEX * TILEY; i++)
 		{
 			Rectangle(DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
@@ -496,8 +516,19 @@ void MapTool::render()
 		if(_canMove==false)
 			_canMove = true;
 	}
-
-
+	//PatBlt(DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, WINSIZEX, WINSIZEY, BLACKNESS);
+	char str[128];
+	if (_vMon.size() != 0)
+	{
+		for (int i = 0; i < TILEX * TILEY; i++)
+		{
+			if (_tiles[i].mon != -1)
+			{
+				sprintf_s(str, "a%d", _tiles[i].mon);
+				fdraw(str, DC, _tiles[i].rc.left, _tiles[i].rc.top, _vMon[findMonVec(i)].currentX, _vMon[findMonVec(i)].currentY);
+			}
+		}
+	}
 
 	if (_side == true)
 		IMAGEMANAGER->render("side", DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2);
@@ -614,6 +645,16 @@ void MapTool::load(int i)
 				}
 			}
 		}
+	}
+
+	for (_viMon = _vMon.begin(); _viMon != _vMon.end();)
+	{
+		_viMon = _vMon.erase(_viMon);
+	}
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		if (_tiles[i].mon != -1)
+			setMon(i);
 	}
 
 	CloseHandle(file);
@@ -1275,6 +1316,7 @@ void MapTool::dragMake()
 									_tiles[_mouseTile[0].x + l + (_mouseTile[0].y + k) * 100].monPos = MPOS_0;
 							}
 						_food[1] -= _mM->getDex(_mM->getVDmon()[_currentMon].num).food;
+						setMon(_mouseTile[0].x + (_mouseTile[0].y) * 100);
 
 						_mM->setHave(_currentMon, _mM->getVDmon()[_currentMon].have - 1);
 						if (_mM->getVDmon()[_currentMon].have == 0)
@@ -1690,7 +1732,7 @@ void MapTool::dragMake()
 				}
 				if (_drag == 7 && _tiles[temp].object != OBJ_TREE)
 				{
-					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos != MPOS_0 &&(i==0||j==0))
+					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos != MPOS_0 /*&&(i==0||j==0)*/)
 					{
 						mouseTile = { LT2.x + j , LT2.y + i };
 						cancelMon(mouseTile,true);
@@ -1725,7 +1767,7 @@ void MapTool::dragMake()
 				}
 				else if (_drag == 8&& _tiles[temp].object!=OBJ_TREE)
 				{
-					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos!=MPOS_0 && (i == 0 || j == 0))
+					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos!=MPOS_0 /*&& (i == 0 || j == 0)*/)
 					{
 						mouseTile = { LT2.x + j , LT2.y + i };
 						cancelMon(mouseTile, true);
@@ -2053,12 +2095,6 @@ void MapTool::drawMap()
 				IMAGEMANAGER->frameRender("tree", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
 				IMAGEMANAGER->frameRender("samplemap", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
-			
-			if (_tiles[i].mon != -1)
-			{
-				sprintf_s(str, "a%d", _tiles[i].mon);
-				fdraw(str, MAP, _tiles[i].rc.left, _tiles[i].rc.top);
-			}
 
 			if (_tiles[i].object == OBJ_MON && _tiles[i].monPos == MPOS_0)
 				draw("tile", MAP, _tiles[i].rc.left, _tiles[i].rc.top);
@@ -2093,6 +2129,8 @@ void MapTool::drawMap2()
 				IMAGEMANAGER->frameRender("tree", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
 			else
 				IMAGEMANAGER->frameRender("samplemap", MAP, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].objFrameX, _tiles[i].objFrameY);
+			if (_tiles[i].object == OBJ_MON && _tiles[i].monPos == MPOS_0)
+				draw("tile", MAP, _tiles[i].rc.left, _tiles[i].rc.top);
 		}
 		if (_tiles[i].mon != -1)
 		{
@@ -2167,6 +2205,14 @@ void MapTool::cancelMon(tagCurrentTile i, bool drag)
 	_mM->addDmon(_tiles[mouseTile.x + (mouseTile.y) * 100].mon);
 	_food[1] += _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).food;
 	_tiles[mouseTile.x + (mouseTile.y) * 100].mon = -1;
+	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
+	{
+		if (mouseTile.x + (mouseTile.y) * 100 == (*_viMon).tile)
+		{
+			_viMon = _vMon.erase(_viMon);
+			break;
+		}
+	}
 	if (drag == false)
 	{
 		drawList(-1);
@@ -2241,6 +2287,114 @@ void MapTool::findRoad()
 	}
 }
 
+void MapTool::setMon(int i)
+{
+	tagMon mon;
+	mon.rc = RectMake(_tiles[i].rc.left - 64, _tiles[i].rc.top - 64, (_mM->getDex(_tiles[i].mon).size.x + 4) * 32, (_mM->getDex(_tiles[i].mon).size.y + 4) * 32);
+	mon.tile = i;
+	mon.hp = _mM->getDex(_tiles[i].mon).hp;
+	mon.atCount = 0;
+	mon.currentX = 0;
+	mon.currentY = 0;
+	mon.frameNum = 0;
+	mon.frameCount = 0;
+	for (int k = -1; k < _mM->getDex(_tiles[i].mon).size.y + 1; k++)
+	{
+		for (int j = -1; j < _mM->getDex(_tiles[i].mon).size.x + 1; j++)
+		{
+			if (_tiles[i+j+k * 100].object == OBJ_MON && _tiles[i + j + k * 100].monPos == MPOS_0)
+				mon.vSlot.push_back(i + j + k * 100);
+		}
+	}
+	_vMon.push_back(mon);
+}
+
+int MapTool::findMonVec(int i)
+{
+	for (int j=0; j<_vMon.size(); j++)
+	{
+		if (i == _vMon[j].tile)
+			return j;
+		//_viMon = _vMon.erase(_viMon);
+	}
+	//_vMon.erase(_vMon.begin() + i);
+}
+
+void MapTool::monFrame()
+{
+	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
+	{
+		(*_viMon).frameCount++;
+		if ((*_viMon).frameCount % 10 == 0)
+		{
+			if ((*_viMon).frameNum < _mM->getDex(_tiles[(*_viMon).tile].mon).frameNum-1)
+			{
+				if((*_viMon).currentX<_mM->getDex(_tiles[(*_viMon).tile].mon).frameX-1)
+					(*_viMon).currentX++;
+				else
+				{
+					(*_viMon).currentX = 0;
+					(*_viMon).currentY++;
+				}
+				(*_viMon).frameNum++;
+			}
+			else
+			{
+				(*_viMon).frameNum = 0;
+				(*_viMon).currentX = 0;
+				(*_viMon).currentY=0;
+			}
+			(*_viMon).frameCount = 0;
+		}
+	}
+}
+
+void MapTool::monUpdate()
+{
+	RECT temp;
+	int distance=-1;
+	int num = 0;
+	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
+	{
+		for (int i = 0; i < _mM->getEmon().size(); i++)
+		{
+			distance = -1;
+			num = 0;
+			if (IntersectRect(&temp, &(*_viMon).rc, &_mM->getEmon()[i]->getRc())&& _mM->getEmon()[i]->getAct()==false)
+			{
+				for ((*_viMon).viSlot = (*_viMon).vSlot.begin(); (*_viMon).viSlot != (*_viMon).vSlot.end(); (*_viMon).viSlot++)
+				{
+					if (_tiles[(*(*_viMon).viSlot)].fight == 1) continue;
+					if (distance == -1)
+					{
+						distance = getDistance((_tiles[(*(*_viMon).viSlot)].rc.right + _tiles[(*(*_viMon).viSlot)].rc.left) / 2, (_tiles[(*(*_viMon).viSlot)].rc.bottom + _tiles[(*(*_viMon).viSlot)].rc.top) / 2,
+							(_mM->getEmon()[i]->getRc().right + _mM->getEmon()[i]->getRc().left) / 2, (_mM->getEmon()[i]->getRc().bottom + _mM->getEmon()[i]->getRc().top) / 2);
+						num = (*(*_viMon).viSlot);
+					}
+					else
+					{
+						if (getDistance((_tiles[(*(*_viMon).viSlot)].rc.right + _tiles[(*(*_viMon).viSlot)].rc.left) / 2, (_tiles[(*(*_viMon).viSlot)].rc.bottom + _tiles[(*(*_viMon).viSlot)].rc.top) / 2,
+							(_mM->getEmon()[i]->getRc().right + _mM->getEmon()[i]->getRc().left) / 2, (_mM->getEmon()[i]->getRc().bottom + _mM->getEmon()[i]->getRc().top) / 2) < distance)
+						{
+							distance = getDistance((_tiles[(*(*_viMon).viSlot)].rc.right + _tiles[(*(*_viMon).viSlot)].rc.left) / 2, (_tiles[(*(*_viMon).viSlot)].rc.bottom + _tiles[(*(*_viMon).viSlot)].rc.top) / 2,
+								(_mM->getEmon()[i]->getRc().right + _mM->getEmon()[i]->getRc().left) / 2, (_mM->getEmon()[i]->getRc().bottom + _mM->getEmon()[i]->getRc().top) / 2);
+							num = (*(*_viMon).viSlot);
+						}
+					}
+				}
+				if (num != 0)
+				{
+					_tiles[num].fight = 1;
+					vector<int> temp;
+					_mM->getEmon()[i]->eraseRoad();
+					temp = _star->findRoad(_mM->getEmon()[i]->getLoca(), num);
+					_mM->getEmon()[i]->setRoad(_star->findRoad(_mM->getEmon()[i]->getLoca(),num));
+					_mM->getEmon()[i]->setAct(true);
+				}
+			}
+		}
+	}
+}
 
 MapTool::MapTool()
 	: _currentXY({50,50}), _currentTileO({ 0,0 }),_currentTileT({ 5,0 }), _player(0)

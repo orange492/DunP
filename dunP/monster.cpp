@@ -6,11 +6,10 @@ HRESULT monster::init(int id,tagMonster dex, int hp, int dir, vector<int> road)
 {
 	_hpbar = new progressBar;
 	_dex = dex;
-	_act = true;
+	_act = false;
 	_hp = hp;
 	_count = 0;
 	_dir = (DIR)dir;
-	_vRoad = road;
 	_vRoad = road;
 	int x=_vRoad[_vRoad.size()-1]%100;
 	int y=_vRoad[_vRoad.size()-1]/100;
@@ -30,6 +29,7 @@ void monster::update()
 {
 	if (_vRoad.size() > 1)
 		move();
+	_loca = _tile.x / 32 + (int)_tile.y / 32 * 100;
 	_hpbar->setGauge(_hp, _dex.hp);
 	_hpbar->setX(_tile.x + 5);
 	_hpbar->setY(_tile.y);
@@ -38,7 +38,6 @@ void monster::update()
 
 void monster::move()
 {
-	if (_vRoad[_vRoad.size() - 2])
 	if (_vRoad[_vRoad.size() - 2] - _vRoad[_vRoad.size() - 1] == 1)
 	{
 		_dir = RIGHT;
@@ -135,7 +134,16 @@ void monster::render()
 	
 	_rc = RectMake(_tile.x, _tile.y, TILESIZE, TILESIZE);
 	fdraw(str, DC, _rc.left, _rc.top, currentX,_dir);
+	//Rectangle(DC, _rc.left, _rc.top, _rc.right, _rc.bottom);
 	_hpbar->render();
+}
+
+void monster::eraseRoad()
+{
+	for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
+	{
+		_viRoad = _vRoad.erase(_viRoad);
+	}
 }
 
 monster::monster()

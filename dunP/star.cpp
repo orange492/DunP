@@ -100,11 +100,13 @@ void star::setTiles(int start, int end, int endStart, int endX, int endY)
 	int x, y;
 	x = end % TILEX;
 	y = end / TILEX;
+	bool out=0;
 
 	for (int i = 0; i < _mapTool->getCurrentXY().y+6; ++i)
 	{
 		for (int j = 0; j <TILEX; ++j)
 		{
+			out = 0;
 			tagNode node;
 			node.parents = node.F = node.G = node.open = 0;
 			node.H = setH(j,i,x,y);
@@ -113,19 +115,37 @@ void star::setTiles(int start, int end, int endStart, int endX, int endY)
 			{
 				//if(_mapTool->getTiles()[j + i * TILEX].object==OBJ_MON&& _mapTool->getTiles()[j + i * TILEX].monPos==MPOS_0)
 				//if(j + i * TILEX == end-1|| j + i * TILEX == end - 99||j + i * TILEX == end - 100||j + i * TILEX == end - 101 || j + i * TILEX == end +1 || j + i * TILEX == end + 99 || j + i * TILEX == end + 100 || j + i * TILEX == end + 101)
-				if (_mapTool->getTiles()[j + i * TILEX].object == OBJ_MON)
+				if (endStart != 0)
 				{
-					for (int k = 0; k < endX+2; k++)
+					if (_mapTool->getTiles()[j + i * TILEX].object == OBJ_MON)
 					{
-						for (int l = 0; l < endY+2; l++)
+						for (int k = 0; k < endX + 2; k++)
 						{
-							if (j + i * TILEX == endStart+l+k*100)
-								node.type = BLANK;
+							for (int l = 0; l < endY + 2; l++)
+							{
+								if (j + i * TILEX == endStart + l + k * 100)
+								{
+									node.type = BLANK;
+									out = 1;
+									break;
+								}
+								else
+									node.type = WALL;
+							}
+							if (out == 1)
+								break;
 						}
 					}
+					else
+						node.type = WALL;
 				}
 				else
-					node.type = WALL;
+				{
+					if (_mapTool->getTiles()[j + i * TILEX].object == OBJ_MON&& _mapTool->getTiles()[j + i * TILEX].monPos==MPOS_0)
+						node.type = BLANK;
+					else
+						node.type = WALL;
+				}
 			}
 			else if (j + i * TILEX == start)
 			{
@@ -228,8 +248,11 @@ void star::addOpenList(int num, bool side)
 		int Road = num;
 		while (_vList[Road].type != START)
 		{
-			if(Road!=num/*&&_mapTool->getTiles()[Road].object==OBJ_MON*/)
-				_vRoad.push_back(Road);
+			//if (Road != num)
+			{
+				if(!(_vRoad.size()==0&& _mapTool->getTiles()[Road].monPos!=MPOS_0))
+					_vRoad.push_back(Road);
+			}
 			Road = _vList[Road].parents;
 		}
 		_vRoad.push_back(Road);
@@ -255,6 +278,18 @@ vector<int> star::findRoad(int start, int end, int endStart, int endX,int endY)
 	{
 		pathFinder();
 		if (_currentTile == TILEX+1)
+			break;
+	}
+	return _vRoad;
+}
+
+vector<int> star::findRoad(int start, int end)
+{
+	setTiles(start, end,0,0,0);
+	while (_vRoad.size() == 0)
+	{
+		pathFinder();
+		if (_currentTile == TILEX + 1)
 			break;
 	}
 	return _vRoad;

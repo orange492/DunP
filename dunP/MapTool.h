@@ -31,6 +31,9 @@ private:
 	//progressBar* _hpbar;
 	star * _star;
 
+	vector<tagMon>				_vMon;
+	vector<tagMon>::iterator	_viMon;
+
 	vector<int>				_vDoor;
 	vector<int>::iterator	_viDoor;
 	
@@ -104,6 +107,10 @@ public:
 	void cancelMon(tagCurrentTile i, bool drag);
 	tagCurrentTile findMon(tagCurrentTile i);
 	void findRoad();
+	void setMon(int i);
+	int findMonVec(int i);
+	void monFrame();
+	void monUpdate();
 	void setup();
 	virtual void save();											// ºº¿Ã∫Í
 	void save(int i);

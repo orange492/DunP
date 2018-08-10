@@ -2,8 +2,6 @@
 #include "gameNode.h"
 #include "progressBar.h"
 
-enum DIR {DOWN,UP,LEFT,RIGHT,LB,RB,LT,RT};
-
 class monster : public gameNode
 {
 	//image* _img;
@@ -13,6 +11,7 @@ class monster : public gameNode
 	POINTFLOAT	_tile;
 	RECT _rc;
 	DIR _dir;
+	int _loca;
 	int _hp;
 	//int _power;
 	//int _spd;
@@ -33,6 +32,15 @@ public:
 	void move();
 	void render();
 
+	void eraseRoad();
+
+	void setAct(int act) { _act = act; }
+	void setDir(DIR dir) { _dir = dir; }
+	void setRoad(vector<int> road) { _vRoad = road; }
+
+	vector<int> getRoad() { return _vRoad; }
+	RECT getRc() { return _rc; }
+	int getLoca() { return _loca; }
 	bool getAct() { return _act; }
 
 	monster();

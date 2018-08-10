@@ -79,6 +79,7 @@ struct tagTile
 	int		objFrameY;			// 오브젝트 프레임 번호
 	int		type;				//몇 번째 종류의 땅/벽/나무인지
 	int		mon;				//어떤 몬스터가 베치되어있는지
+	bool	fight;
 };
 
 // 타일셋 구조체
@@ -97,6 +98,7 @@ struct tagCurrentTile
 };
 
 enum TYPE { GRASS, FIRE, WATER };
+enum DIR { DOWN, UP, LEFT, RIGHT, LB, RB, LT, RT };
 
 struct tagMonster
 {
@@ -110,8 +112,24 @@ struct tagMonster
 	int hp;
 	int power;
 	int food;
+	int frameX;
+	int frameNum;
 	bool evolution;
 	bool dir[4];
+};
+
+struct tagMon
+{
+	RECT rc;
+	int tile;
+	int hp;
+	int frameNum;
+	int frameCount;
+	int currentX;
+	int currentY;
+	int atCount;
+	vector<int>				vSlot;
+	vector<int>::iterator	viSlot;
 };
 
 #endif 

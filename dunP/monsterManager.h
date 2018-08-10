@@ -2,6 +2,8 @@
 #include "monster.h"
 #include "gameNode.h"
 
+class MapTool;
+
 class monsterManager : public gameNode
 {
 #define DEXNUM 3
@@ -14,6 +16,8 @@ class monsterManager : public gameNode
 		//RECT rc;
 		//bool act;
 	};
+
+	MapTool * _mapTool;
 
 	tagMonster _dex[DEXNUM];
 
@@ -38,12 +42,14 @@ public:
 	void addEmon(int id, int i, int dir, vector<int> road);
 
 	void dexSetting();
+	void dexSet(int i, image * img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food, bool evo, bool dir0, bool dir1, bool dir2, bool dir3);
 	void eraseDmon(int arrNum);
 	void eraseAmon(int arrNum);
-	void dexSet(int i, image * img, string name, TYPE type, POINT size, int fhp, int power, float spd, float atSpd, int food, bool evo, bool dir0, bool dir1, bool dir2, bool dir3);
 	//void evolution(bool ad, int i);
 	tagMonster getDex(int i) { return _dex[i]; }
 	vector<tagMon>	getVDmon() { return _vDmon; }
+	vector<monster*>	getEmon() { return _vEmon; }
+	void setMtMemoryAddressLink(MapTool* mt) { _mapTool = mt; }
 
 	monsterManager();
 	~monsterManager();

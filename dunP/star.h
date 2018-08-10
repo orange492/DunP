@@ -46,6 +46,7 @@ public:
 	void addOpenList(int num, bool side);
 	int setH(int x1, int y1, int x2, int y2);
 	vector<int> findRoad(int start, int end, int endStart, int endX, int endY);
-	void setmMMemoryAddressLink(MapTool* mt) { _mapTool = mt; }
+	vector<int> findRoad(int start, int end);
+	void setMtMemoryAddressLink(MapTool* mt) { _mapTool = mt; }
 };
 

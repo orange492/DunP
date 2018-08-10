@@ -15,9 +15,10 @@ HRESULT playGround::init(void)
 	_mM = new monsterManager;
 	_star = new star;
 
-	_star->setmMMemoryAddressLink(_mapTool);
+	_star->setMtMemoryAddressLink(_mapTool);
 	_mapTool->setmMMemoryAddressLink(_mM);
 	_mapTool->setStarMemoryAddressLink(_star);
+	_mM->setMtMemoryAddressLink(_mapTool);
 	CAMERAMANAGER->setmMMemoryAddressLink(_mM);
 	CAMERAMANAGER->setMtMemoryAddressLink(_mapTool);
 
