@@ -19,6 +19,7 @@ HRESULT playGround::init(void)
 	_mapTool->setmMMemoryAddressLink(_mM);
 	_mapTool->setStarMemoryAddressLink(_star);
 	_mM->setMtMemoryAddressLink(_mapTool);
+	_mM->setStarMemoryAddressLink(_star);
 	CAMERAMANAGER->setmMMemoryAddressLink(_mM);
 	CAMERAMANAGER->setMtMemoryAddressLink(_mapTool);
 
@@ -70,7 +71,7 @@ void playGround::update(void)
 
 	if (mode == ¸ÊÅø)
 	{
-		if (_mapTool->getCanMove() == false)	return;
+		//if (_mapTool->getCanMove() == false)	return;
 		_mapTool->update();
 		_mM->update();
 		_star->update();
@@ -119,6 +120,8 @@ void playGround::render(void)
 		OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
 		DEFAULT_PITCH | FF_SWISS, TEXT("HY¾èÀº»ù¹°M"));
 	oldFont = (HFONT)SelectObject(UIDC, font);
+	wsprintf(str, "%d", _mapTool->getMoney(), _mapTool->getMoney());
+	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1280, 25, 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 	wsprintf(str, "%d / %d", _mapTool->getStone(1), _mapTool->getStone(0));
 	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1470,25,200,50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 	wsprintf(str, "%d / %d", _mapTool->getFood(1), _mapTool->getFood(0));
@@ -126,7 +129,7 @@ void playGround::render(void)
 	SelectObject(UIDC, oldFont);
 	DeleteObject(font);
 	TIMEMANAGER->render(UIDC);
-	if (_mapTool->getCanMove() == true)
+	//if (_mapTool->getCanMove() == true)
 	IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);
 	CAMERAMANAGER->render(this->getBackBuffer());
 	//CAMERAMANAGER->render(this->getBackBuffer());

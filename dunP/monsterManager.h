@@ -3,6 +3,7 @@
 #include "gameNode.h"
 
 class MapTool;
+class star;
 
 class monsterManager : public gameNode
 {
@@ -18,11 +19,12 @@ class monsterManager : public gameNode
 	};
 
 	MapTool * _mapTool;
+	star * _star;
 
 	tagMonster _dex[DEXNUM];
 
-	vector<monster*>			_vAmon;
-	vector<monster*>::iterator	_viAmon;
+	//vector<monster*>			_vAmon;
+	//vector<monster*>::iterator	_viAmon;
 
 	vector<tagMon>				_vDmon;
 	vector<tagMon>::iterator	_viDmon;
@@ -42,7 +44,7 @@ public:
 	void addEmon(int id, int i, int dir, vector<int> road);
 
 	void dexSetting();
-	void dexSet(int i, image * img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food, bool evo, bool dir0, bool dir1, bool dir2, bool dir3);
+	void dexSet(int i, image * img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food, int price, bool evo, bool dir0, bool dir1, bool dir2, bool dir3);
 	void eraseDmon(int arrNum);
 	void eraseAmon(int arrNum);
 	//void evolution(bool ad, int i);
@@ -50,6 +52,7 @@ public:
 	vector<tagMon>	getVDmon() { return _vDmon; }
 	vector<monster*>	getEmon() { return _vEmon; }
 	void setMtMemoryAddressLink(MapTool* mt) { _mapTool = mt; }
+	void setStarMemoryAddressLink(star* star) { _star = star; }
 
 	monsterManager();
 	~monsterManager();

@@ -35,12 +35,16 @@ public:
 	void eraseRoad();
 
 	void setAct(int act) { _act = act; }
+	void setHp(int hp) { _hp = hp; }
 	void setDir(DIR dir) { _dir = dir; }
 	void setRoad(vector<int> road) { _vRoad = road; }
 
 	vector<int> getRoad() { return _vRoad; }
 	RECT getRc() { return _rc; }
+	tagMonster getDex() { return _dex; }
 	int getLoca() { return _loca; }
+	int getHp() { return _hp; }
+	int getCount() { return _count; }
 	bool getAct() { return _act; }
 
 	monster();

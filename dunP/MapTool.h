@@ -1,6 +1,7 @@
 #pragma once
 #include "tileNode.h"
 #include "gameNode.h"
+#include "progressBar.h"
 
 class monsterManager;
 class star;
@@ -24,6 +25,24 @@ struct SAVEF
 	int stone;
 };
 
+struct tagMon
+{
+
+	/*progressBar *hpbar = new progressBar();*/
+	progressBar *hpbar;
+	RECT rc;
+	float hp;
+	int id;
+	int tile;
+	int frameNum;
+	int frameCount;
+	int currentX;
+	int currentY;
+	int atCount;
+	vector<int>				vSlot;
+	vector<int>::iterator	viSlot;
+};
+
 class MapTool :	public gameNode
 {
 private:
@@ -33,6 +52,9 @@ private:
 
 	vector<tagMon>				_vMon;
 	vector<tagMon>::iterator	_viMon;
+
+	vector<int>				_vMonNum;
+	vector<int>::iterator	_viMonNum;
 
 	vector<int>				_vDoor;
 	vector<int>::iterator	_viDoor;
@@ -62,8 +84,8 @@ private:
 	//int			_pos[2];
 	int			_stone[2];									//최대,현재 보유중인 벽돌 수
 	int			_food[2];									//최대,현재 보유중인 식량 수
-	int			_monNum;									//현재 배치 몬스터 수
 	int			_money;										//현재 보유중인 돈의 양
+	int			_monNum;									//현재 배치 몬스터 수
 	int			_drag;										//드래그 후 _select에따라 다른 기능 실행
 	int			_wall;										//몇번째 벽 선택중인지
 	int			_floor;										//몇번째 바닥 선택중인지
@@ -72,7 +94,7 @@ private:
 	int			_player;
 	
 	bool		_side;										//사이드슬롯 온/오프
-	bool		_canMove;									//탭으로 타일 확인할때 못움직이게
+	//bool		_canMove;									//탭으로 타일 확인할때 못움직이게
 	bool		_eraser;									//무슨 지우개 선택중인지
 
 public:
@@ -117,9 +139,14 @@ public:
 	virtual void load();											// 로드
 	void load(int i);
 	virtual void setmap();
+	int	 findMon(int i);
 
 	void setmMMemoryAddressLink(monsterManager* mM) { _mM = mM; }
 	void setStarMemoryAddressLink(star* star) { _star = star; }
+
+	void setMonHp(int i, int hp) { _vMon[i].hp = hp; }
+	void setMoney(int money) { _money = money; }
+	void setFight(int i,bool fight) { _tiles[i].fight=fight; }
 
 	TERRAIN		terrainSelect(int FrameX, int FrameY);		// 어떤 지형을 선택했는지
 	OBJECT		objSelect(int FrameX, int FrameY);			// 어던 오브젝트를 선택했는지
@@ -127,10 +154,15 @@ public:
 	//DWORD*		getAttribute()	{ return _attribute; }		// 타일 속성 접근자
 	tagCurrentTile	getCurrentXY() { return _currentXY; }
 	vector<int> getDoor() { return _vDoor; }
+	vector<tagMon> getMon() { return _vMon; }
+
 	int getSelect() { return _select; }
 	int getStone(int i) { return _stone[i]; }
 	int getFood(int i) { return _food[i]; }
-	bool	getCanMove() { return _canMove; }
+	int getMoney() { return _money; }
+	int getPlayer() { return _player; }
+	bool	getFight(int i) { return _tiles[i].fight; }
+//	bool	getCanMove() { return _canMove; }
 
 	MapTool();
 	~MapTool();

@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include "monsterManager.h"
 #include "MapTool.h"
-
+#include "star.h"
 
 HRESULT monsterManager::init()
 {
@@ -24,9 +24,33 @@ void monsterManager::release()
 
 void monsterManager::update()
 {
+	int mon;
 	for (_viEmon = _vEmon.begin(); _viEmon != _vEmon.end(); ++_viEmon)
 	{
 		(*_viEmon)->update();
+		if ((*_viEmon)->getAct() == true && _mapTool->getFight((*_viEmon)->getLoca()) == false&& (*_viEmon)->getRoad().size()==1)
+		{
+			(*_viEmon)->eraseRoad();
+			(*_viEmon)->setRoad(_star->findRoad((*_viEmon)->getLoca(), _mapTool->getPlayer(), _mapTool->getPlayer()-101,_dex[_mapTool->getTiles()[_mapTool->getPlayer()].mon].size.x, _dex[_mapTool->getTiles()[_mapTool->getPlayer()].mon].size.y));
+			(*_viEmon)->setAct(false);
+		}
+		else if ((*_viEmon)->getAct() == true && _mapTool->getFight((*_viEmon)->getLoca()) == true && (*_viEmon)->getRoad().size() == 1&& (*_viEmon)->getCount()%10==9)
+		{
+			(*_viEmon)->setHp((*_viEmon)->getHp() - (_dex[_mapTool->getTiles()[_mapTool->getTiles()[(*_viEmon)->getLoca()].mon2].mon].power)/1);
+			mon=_mapTool->findMon(_mapTool->getTiles()[(*_viEmon)->getLoca()].mon2);
+			_mapTool->setMonHp(mon, _mapTool->getMon()[mon].hp - ((*_viEmon)->getDex().power) * 0.5);
+		}
+	}
+
+	for (int i = 0; i < _vEmon.size(); i++)
+	{
+		if (_vEmon[i]->getHp() <= 0)
+		{
+			_mapTool->setMoney(_mapTool->getMoney() + _vEmon[i]->getDex().price);
+			_mapTool->setFight(_vEmon[i]->getLoca(), false);
+			 _vEmon.erase(_vEmon.begin() + i);
+			 i--;
+		}
 	}
 }
 
@@ -34,7 +58,7 @@ void monsterManager::render()
 {
 	for (_viEmon = _vEmon.begin(); _viEmon != _vEmon.end(); ++_viEmon)
 	{
-		if((*_viEmon)->getRoad().size() == 0)
+		if((*_viEmon)->getRoad().size() == 1)
 		{
 			if (_mapTool->getTiles()[(*_viEmon)->getLoca() - 1].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() - 1].monPos != MPOS_0)
 				(*_viEmon)->setDir(LEFT);
@@ -117,17 +141,17 @@ void monsterManager::eraseDmon(int arrNum)
 
 void monsterManager::eraseAmon(int arrNum)
 {
-	_vAmon.erase(_vAmon.begin() + arrNum);
+	//_vAmon.erase(_vAmon.begin() + arrNum);
 }
 
 void monsterManager::dexSetting()
 {
-	dexSet(0, IMAGEMANAGER->findImage("a0"), "이상해씨", GRASS, PointMake(1, 1), 10,10, 10, 10, 1, 1, 5, true, true, true, true, true);
-	dexSet(1, IMAGEMANAGER->findImage("a1"), "이상해풀", GRASS, PointMake(2, 2), 10,30, 15, 15, 0.9, 0.9,10, true, true, true, true, true);
-	dexSet(2, IMAGEMANAGER->findImage("a2"), "이상해꽃", GRASS, PointMake(3, 3), 7,18, 20, 20, 0.8, 0.8,15, false, true, true, true, true);
+	dexSet(0, IMAGEMANAGER->findImage("a0"), "이상해씨", GRASS, PointMake(1, 1), 10,10, 100, 1, 1, 1, 5,10, true, true, true, true, true);
+	dexSet(1, IMAGEMANAGER->findImage("a1"), "이상해풀", GRASS, PointMake(2, 2), 10,30, 150, 2, 0.9, 0.9,10,20, true, true, true, true, true);
+	dexSet(2, IMAGEMANAGER->findImage("a2"), "이상해꽃", GRASS, PointMake(3, 3), 7,18, 200, 3, 0.8, 0.8,15,30, false, true, true, true, true);
 }
 
-void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food, bool evo, bool dir0, bool dir1, bool dir2, bool dir3)
+void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food,int price, bool evo, bool dir0, bool dir1, bool dir2, bool dir3)
 {
 	_dex[i].num = i;
 //	_dex[i].img = new image;
@@ -142,6 +166,7 @@ void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT siz
 	_dex[i].spd = spd;
 	_dex[i].atSpd = atSpd;
 	_dex[i].food = food;
+	_dex[i].price = price;
 	_dex[i].evolution = evo;
 	_dex[i].dir[0] = dir0;
 	_dex[i].dir[1] = dir1;

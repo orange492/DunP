@@ -15,16 +15,25 @@
 //벽생성 막기, 삭제
 //몬스터도같이세이브
 //애니메이션
-
 //체력바
-
-//타이틀 - 뉴, 컨티뉴(세이브파일), 옵션(사운드), 랭킹, 멀티
-//듀토리얼
-//플레이어
-//랜덤맵
 //공격타일설정
-//탭키
 //죽으면파이트해제,방향
+//탭키
+
+//듀토리얼
+//랜덤맵
+//공속,공격방향
+//배치몬 피차기
+//배속
+//포획필드
+//타이틀 - 뉴, 컨티뉴(세이브파일), 옵션(사운드), 랭킹, 멀티
+
+//타이틀 - 뉴, 컨티뉴
+//플레이어,속성
+//사라질때끊기는거
+
+//월-파이리꼬부기,타이틀이미지,유아이상단바수정
+
 
 HRESULT MapTool::init()
 {
@@ -54,6 +63,7 @@ HRESULT MapTool::init()
 	_side = true;
 	_stone[0] =_stone[1] = 1000;
 	_food[0] =_food[1] = 1000;
+	_money = 0;
 	_currentMon = -1;
 
 	_mapX = 250, _mapY = 250;
@@ -113,7 +123,7 @@ void MapTool::update()
 			dir = 2;
 		if (_tiles[_vDoor[rand] -1].terrain == TR_NULL)
 			dir = 3;
-		_mM->addEmon(0,1, dir,_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
+		_mM->addEmon(100,1, dir,_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
 	}
 
 	if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
@@ -465,57 +475,57 @@ void MapTool::render()
 
 	dragMake();
 
-	if (KEYMANAGER->isStayKeyDown(VK_TAB))
-	{
-		for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
-		{
-			Rectangle(DC, (*_viMon).rc.left, (*_viMon).rc.top, (*_viMon).rc.right, (*_viMon).rc.bottom);
-		}
+	//if (KEYMANAGER->isStayKeyDown(VK_TAB))
+	//{
+	//	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
+	//	{
+	//		Rectangle(DC, (*_viMon).rc.left, (*_viMon).rc.top, (*_viMon).rc.right, (*_viMon).rc.bottom);
+	//	}
 
-		//_canMove = false;
+	//	//_canMove = false;
 
-		////Rectangle(DC,_tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
-		//char str[128];
-		//
-		////TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
-		//SetTextColor(DC, RGB(255, 255, 255));
-		//SetBkMode(DC, TRANSPARENT);
-		//HFONT font, oldFont;
-		//font = CreateFont(15, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
-		//	OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
-		//	DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
-		//oldFont = (HFONT)SelectObject(DC, font);
+	//	////Rectangle(DC,_tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
+	//	//char str[128];
+	//	//
+	//	////TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
+	//	//SetTextColor(DC, RGB(255, 255, 255));
+	//	//SetBkMode(DC, TRANSPARENT);
+	//	//HFONT font, oldFont;
+	//	//font = CreateFont(15, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+	//	//	OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+	//	//	DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+	//	//oldFont = (HFONT)SelectObject(DC, font);
 
-		//for (int i = 0; i < TILEX * TILEY; i++)
-		//{
-		//	sprintf_s(str, "%d,%d", i % 100, i / 100);
-		//	DrawText(DC, TEXT(str), strlen(str), &_tiles[i].rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-		//}
+	//	//for (int i = 0; i < TILEX * TILEY; i++)
+	//	//{
+	//	//	sprintf_s(str, "%d,%d", i % 100, i / 100);
+	//	//	DrawText(DC, TEXT(str), strlen(str), &_tiles[i].rc, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+	//	//}
 
-		//SelectObject(DC, oldFont);
-		//DeleteObject(font);
+	//	//SelectObject(DC, oldFont);
+	//	//DeleteObject(font);
 
-		/*for (int i = 0; i < TILEX * TILEY; i++)
-		{
-			Rectangle(DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
-			char str[128];
-			sprintf_s(str, "%d", i);
-			TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
-		}
+	//	/*for (int i = 0; i < TILEX * TILEY; i++)
+	//	{
+	//		Rectangle(DC, _tiles[i].rc.left, _tiles[i].rc.top, _tiles[i].rc.right, _tiles[i].rc.bottom);
+	//		char str[128];
+	//		sprintf_s(str, "%d", i);
+	//		TextOut(DC, _tiles[i].rc.left, _tiles[i].rc.top, str, strlen(str));
+	//	}
 
-		for (int i = 0; i < SAMPLETILEX * SAMPLETILEY; i++)
-		{
-			Rectangle(UIDC, _sampleTile[i].rctile.left, _sampleTile[i].rctile.top, _sampleTile[i].rctile.right, _sampleTile[i].rctile.bottom);
-			char str[128];
-			sprintf_s(str, "%d", i);
-			TextOut(UIDC, _sampleTile[i].rctile.left, _sampleTile[i].rctile.top, str, strlen(str));
-		}*/
-	}
-	else
-	{
-		if(_canMove==false)
-			_canMove = true;
-	}
+	//	for (int i = 0; i < SAMPLETILEX * SAMPLETILEY; i++)
+	//	{
+	//		Rectangle(UIDC, _sampleTile[i].rctile.left, _sampleTile[i].rctile.top, _sampleTile[i].rctile.right, _sampleTile[i].rctile.bottom);
+	//		char str[128];
+	//		sprintf_s(str, "%d", i);
+	//		TextOut(UIDC, _sampleTile[i].rctile.left, _sampleTile[i].rctile.top, str, strlen(str));
+	//	}*/
+	//}
+	//else
+	//{
+	//	if(_canMove==false)
+	//		_canMove = true;
+	//}
 	//PatBlt(DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2, WINSIZEX, WINSIZEY, BLACKNESS);
 	char str[128];
 	if (_vMon.size() != 0)
@@ -529,6 +539,9 @@ void MapTool::render()
 			}
 		}
 	}
+
+	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
+		(*_viMon).hpbar->render();
 
 	if (_side == true)
 		IMAGEMANAGER->render("side", DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2);
@@ -698,6 +711,7 @@ void MapTool::setup()
 		_tiles[i].object = OBJ_NULL;
 		
 		_tiles[i].mon = -1;
+		_tiles[i].mon2 = -1;
 	}
 }
 
@@ -788,6 +802,15 @@ void MapTool::setmap()
 	//		}
 	//	}
 	//}
+}
+
+int MapTool::findMon(int i)
+{
+	for (int j = 0; j < _vMon.size(); j++)
+	{
+		if(i== _vMon[j].tile)
+			return j;
+	}
 }
 
 TERRAIN MapTool::terrainSelect(int FrameX, int FrameY)
@@ -2205,14 +2228,29 @@ void MapTool::cancelMon(tagCurrentTile i, bool drag)
 	_mM->addDmon(_tiles[mouseTile.x + (mouseTile.y) * 100].mon);
 	_food[1] += _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).food;
 	_tiles[mouseTile.x + (mouseTile.y) * 100].mon = -1;
+	
 	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
 	{
 		if (mouseTile.x + (mouseTile.y) * 100 == (*_viMon).tile)
 		{
+			for (_viMonNum = _vMonNum.begin(); _viMonNum != _vMonNum.end(); _viMonNum++)
+			{
+				if ((*_viMon).id == (*_viMonNum))
+				{
+					_viMonNum = _vMonNum.erase(_viMonNum);
+					break;
+				}
+			}
+			for (int i = 0; i < (*_viMon).vSlot.size(); i++)
+			{
+				_tiles[(*_viMon).vSlot[i]].fight = false;
+				_tiles[(*_viMon).vSlot[i]].mon2 = -1;
+			}
 			_viMon = _vMon.erase(_viMon);
 			break;
 		}
 	}
+	
 	if (drag == false)
 	{
 		drawList(-1);
@@ -2302,10 +2340,29 @@ void MapTool::setMon(int i)
 	{
 		for (int j = -1; j < _mM->getDex(_tiles[i].mon).size.x + 1; j++)
 		{
-			if (_tiles[i+j+k * 100].object == OBJ_MON && _tiles[i + j + k * 100].monPos == MPOS_0)
+			if (_tiles[i + j + k * 100].object == OBJ_MON && _tiles[i + j + k * 100].monPos == MPOS_0)
+			{
 				mon.vSlot.push_back(i + j + k * 100);
+				_tiles[i + j + k * 100].mon2 = i;
+			}
 		}
 	}
+	mon.hpbar = new progressBar;
+	mon.id=0;
+	if (_vMonNum.size() == 0)
+		mon.id = 0;
+	else
+	{
+		for (int l = 0; l < _vMonNum.size(); l++)
+		{
+			if (_vMonNum[l] == mon.id)
+				mon.id++;
+			else
+				break;
+		}
+	}
+	_vMonNum.insert(_vMonNum.begin()+ mon.id, mon.id);
+	mon.hpbar->init(_tiles[i].rc.left, _tiles[i].rc.top-2, _mM->getDex(_tiles[i].mon).size.x*32,5, mon.id);
 	_vMon.push_back(mon);
 }
 
@@ -2356,6 +2413,10 @@ void MapTool::monUpdate()
 	int num = 0;
 	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
 	{
+		/*if(KEYMANAGER->isStayKeyDown('N'))
+			(*_viMon).hp--;*/
+		(*_viMon).hpbar->setGauge((*_viMon).hp, _mM->getDex(_tiles[(*_viMon).tile].mon).hp);
+		(*_viMon).hpbar->update();
 		for (int i = 0; i < _mM->getEmon().size(); i++)
 		{
 			distance = -1;
@@ -2387,11 +2448,20 @@ void MapTool::monUpdate()
 					_tiles[num].fight = 1;
 					vector<int> temp;
 					_mM->getEmon()[i]->eraseRoad();
-					temp = _star->findRoad(_mM->getEmon()[i]->getLoca(), num);
+					//temp = _star->findRoad(_mM->getEmon()[i]->getLoca(), num);
 					_mM->getEmon()[i]->setRoad(_star->findRoad(_mM->getEmon()[i]->getLoca(),num));
 					_mM->getEmon()[i]->setAct(true);
 				}
 			}
+		}
+	}
+	for (int i=0;i<_vMon.size();i++)
+	{
+		if (_vMon[i].hp <= 0)
+		{
+			tagCurrentTile Tile = { _vMon[i].tile%TILEX ,_vMon[i].tile/TILEX };
+			cancelMon(Tile, false);
+			i--;
 		}
 	}
 }
