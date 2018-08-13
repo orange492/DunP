@@ -132,7 +132,7 @@ void monster::render()
 	}
 	int currentX;
 
-	_dex.num ==0 ? _currentX == 3 ? currentX = 2 : currentX = _currentX : _currentX == 3 ? currentX = 1 : currentX = _currentX;
+	(_dex.num ==0|| _dex.num == 11) ? _currentX == 3 ? currentX = 2 : currentX = _currentX : _currentX == 3 ? currentX = 1 : currentX = _currentX;
 	
 	_rc = RectMake(_tile.x-16, _tile.y-16, TILESIZE, TILESIZE);
 	fdraw(str, DC, _rc.left, _rc.top, currentX,_dir);

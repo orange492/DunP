@@ -20,19 +20,19 @@
 //죽으면파이트해제,방향
 //탭키
 
+//타이틀 - 옵션(사운드), 랭킹, 멀티
 //듀토리얼
 //랜덤맵
 //공속,공격방향
+
 //배치몬 피차기
 //배속
-//포획필드
-//타이틀 - 뉴, 컨티뉴(세이브파일), 옵션(사운드), 랭킹, 멀티
 
+//포획필드
 //타이틀 - 뉴, 컨티뉴
 //플레이어,속성
 //사라질때끊기는거
-
-//월-파이리꼬부기,타이틀이미지,유아이상단바수정
+//리셋버튼
 
 
 HRESULT MapTool::init()
@@ -123,7 +123,8 @@ void MapTool::update()
 			dir = 2;
 		if (_tiles[_vDoor[rand] -1].terrain == TR_NULL)
 			dir = 3;
-		_mM->addEmon(100,1, dir,_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
+		int rand2 = RND->getInt(15);
+		_mM->addEmon(100,rand2, dir,_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
 	}
 
 	if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
@@ -535,7 +536,10 @@ void MapTool::render()
 			if (_tiles[i].mon != -1)
 			{
 				sprintf_s(str, "a%d", _tiles[i].mon);
-				fdraw(str, DC, _tiles[i].rc.left, _tiles[i].rc.top, _vMon[findMonVec(i)].currentX, _vMon[findMonVec(i)].currentY);
+				if (_tiles[i].mon == 13)
+					fdraw(str, DC, _tiles[i].rc.left + 10, _tiles[i].rc.top + 10, _vMon[findMonVec(i)].currentX, _vMon[findMonVec(i)].currentY);
+				else
+					fdraw(str, DC, _tiles[i].rc.left, _tiles[i].rc.top, _vMon[findMonVec(i)].currentX, _vMon[findMonVec(i)].currentY);
 			}
 		}
 	}
@@ -624,7 +628,8 @@ void MapTool::load(int i)
 			{
 				if (_mM->getVDmon()[j].num == _tiles[i].mon)
 				{
-					_mM->setHave(j, _mM->getVDmon()[j].have + 1);
+					_mM->addDmon(_tiles[i].mon);
+					//_mM->setHave(j, _mM->getVDmon()[j].have + 1);
 					break;
 				}
 			}
@@ -653,7 +658,10 @@ void MapTool::load(int i)
 			{
 				if (_mM->getVDmon()[j].num == _tiles[i].mon)
 				{
-					_mM->setHave(j, _mM->getVDmon()[j].have - 1);
+					if (_mM->getVDmon()[j].have > 0)
+						_mM->setHave(j, _mM->getVDmon()[j].have - 1);
+					else
+						_tiles[i].mon = -1;
 					break;
 				}
 			}
@@ -1418,6 +1426,7 @@ void MapTool::dragMake()
 			{
 				for (int j = 0; j <= x; j++)
 				{
+					temp = LT2.x + j + (LT2.y + i) * 100;
 					if (count3 == -1)	count3 = 0;
 					if ((i == 0 || i == y) && _tiles[temp - 1].terrain == TR_FLOOR || _tiles[temp + 1].terrain == TR_FLOOR || _tiles[temp - 100].terrain == TR_FLOOR || _tiles[temp + 100].terrain == TR_FLOOR
 						|| _tiles[temp - 101].terrain == TR_FLOOR || _tiles[temp - 99].terrain == TR_FLOOR || _tiles[temp + 101].terrain == TR_FLOOR || _tiles[temp + 99].terrain == TR_FLOOR) count3++;
@@ -2178,7 +2187,7 @@ void MapTool::drawList(int num)
 	for (int i = 0; i < _mM->getVDmon().size(); i++)
 	{
 		IMAGEMANAGER->render("slot", UIDC2, 0 + (i % 2 * 250), 52 + (i / 2 * 110));
-		IMAGEMANAGER->frameRender("Fimg", UIDC2, 8 + (i % 2 * 250), 60 + (i / 2 * 110), _mM->getVDmon()[i].num, 0);
+		IMAGEMANAGER->frameRender("Fimg", UIDC2, 8 + (i % 2 * 250), 60 + (i / 2 * 110), (_mM->getVDmon()[i].num)%6, (_mM->getVDmon()[i].num) / 6);
 		IMAGEMANAGER->frameRender("type", UIDC2, 173 + (i % 2 * 250), 70 + (i / 2 * 110), _mM->getDex(_mM->getVDmon()[i].num).type % 4, _mM->getDex(_mM->getVDmon()[i].num).type / 4);
 		if (_mM->getVDmon()[i].have > 0)
 			sprintf_s(str, "%s x %d", _mM->getDex(_mM->getVDmon()[i].num).name.c_str(), _mM->getVDmon()[i].have);

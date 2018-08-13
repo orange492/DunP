@@ -7,7 +7,7 @@ class star;
 
 class monsterManager : public gameNode
 {
-#define DEXNUM 3
+#define DEXNUM 15
 
 	struct tagMon
 	{

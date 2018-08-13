@@ -7,11 +7,9 @@ HRESULT monsterManager::init()
 {
 	dexSetting();
 
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 15; i++)
 	{
-		addDmon(1);
-		addDmon(0);
-		addDmon(0);
+		addDmon(i);
 	}
 	//addEmon(0);
 	
@@ -36,7 +34,7 @@ void monsterManager::update()
 		}
 		else if ((*_viEmon)->getAct() == true && _mapTool->getFight((*_viEmon)->getLoca()) == true && (*_viEmon)->getRoad().size() == 1&& (*_viEmon)->getCount()%10==9)
 		{
-			(*_viEmon)->setHp((*_viEmon)->getHp() - (_dex[_mapTool->getTiles()[_mapTool->getTiles()[(*_viEmon)->getLoca()].mon2].mon].power)/1);
+			(*_viEmon)->setHp((*_viEmon)->getHp() - (_dex[_mapTool->getTiles()[_mapTool->getTiles()[(*_viEmon)->getLoca()].mon2].mon].power)/0.5);
 			mon=_mapTool->findMon(_mapTool->getTiles()[(*_viEmon)->getLoca()].mon2);
 			_mapTool->setMonHp(mon, _mapTool->getMon()[mon].hp - ((*_viEmon)->getDex().power) * 0.5);
 		}
@@ -148,7 +146,19 @@ void monsterManager::dexSetting()
 {
 	dexSet(0, IMAGEMANAGER->findImage("a0"), "ÀÌ»óÇØ¾¾", GRASS, PointMake(1, 1), 10,10, 100, 1, 1, 1, 5,10, true, true, true, true, true);
 	dexSet(1, IMAGEMANAGER->findImage("a1"), "ÀÌ»óÇØÇ®", GRASS, PointMake(2, 2), 10,30, 150, 2, 0.9, 0.9,10,20, true, true, true, true, true);
-	dexSet(2, IMAGEMANAGER->findImage("a2"), "ÀÌ»óÇØ²É", GRASS, PointMake(3, 3), 7,18, 200, 3, 0.8, 0.8,15,30, false, true, true, true, true);
+	dexSet(2, IMAGEMANAGER->findImage("a2"), "ÀÌ»óÇØ²É", GRASS, PointMake(3, 3), 7,18, 200, 3, 1, 0.8,15,30, false, true, true, true, true);
+	dexSet(3, IMAGEMANAGER->findImage("a3"), "ÆÄÀÌ¸®", FIRE, PointMake(1, 2), 10,27, 100, 1, 1.1, 0.8,5,10, true, true, true, true, true);
+	dexSet(4, IMAGEMANAGER->findImage("a4"), "¸®ÀÚµå", FIRE, PointMake(2, 2), 11,46, 150, 2, 1.2, 0.8,10,20, true, true, true, true, true);
+	dexSet(5, IMAGEMANAGER->findImage("a5"), "¸®ÀÚ¸ù", FIRE, PointMake(3, 3), 6,36, 200, 3, 0.8, 0.8,15,30, false, true, true, true, true);
+	dexSet(6, IMAGEMANAGER->findImage("a6"), "²¿ºÎ±â", WATER, PointMake(1, 2), 12,17, 100, 1, 1, 0.8,5,10, true, true, true, true, true);
+	dexSet(7, IMAGEMANAGER->findImage("a7"), "¾î´ÏºÎ±â", WATER, PointMake(2, 2), 13,18, 150, 2, 0.9, 0.8,10,20, true, true, true, true, true);
+	dexSet(8, IMAGEMANAGER->findImage("a8"), "°ÅºÏ¿Õ", WATER, PointMake(3, 3), 10,30, 200, 3, 0.8, 0.8,15,30, false, true, true, true, true);
+	dexSet(9, IMAGEMANAGER->findImage("a9"), "½º¶óÅ©", GRASS, PointMake(2, 2), 11,15, 100, 2, 1.1, 0.8,5,15, true, true, true, true, true);
+	dexSet(10, IMAGEMANAGER->findImage("a10"), "ÇÖ»ê", GRASS, PointMake(3, 3), 10,30, 150, 3, 1.2, 0.8,10,25, false, true, true, true, true);
+	dexSet(11, IMAGEMANAGER->findImage("a11"), "½Ä½ºÅ×ÀÏ", FIRE, PointMake(2, 2), 9,18, 120, 1, 1.3, 0.8,5,15, true, true, true, true, true);
+	dexSet(12, IMAGEMANAGER->findImage("a12"), "³ªÀÎÅ×ÀÏ", FIRE, PointMake(3, 3), 9,9, 170, 2, 1.2, 0.8,10,25, false, true, true, true, true);
+	dexSet(13, IMAGEMANAGER->findImage("a13"), "¼¿·¯", WATER, PointMake(2, 2), 11,44, 150, 1, 0.8, 0.8,5,15, true, true, true, true, true);
+	dexSet(14, IMAGEMANAGER->findImage("a14"), "ÆÄ¸£¼¿", WATER, PointMake(3, 3), 10,18, 200, 2, 0.7, 0.8,10,25, false, true, true, true, true);
 }
 
 void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food,int price, bool evo, bool dir0, bool dir1, bool dir2, bool dir3)
