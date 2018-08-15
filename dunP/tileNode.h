@@ -39,7 +39,7 @@
 #define MAPTILEY 51
 
 // 맵이름
-#define MAPNAME "map/myDungen.map"
+//#define MAPNAME "map/myDungen.map"
 
 // 지형	
 enum TERRAIN

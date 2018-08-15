@@ -29,6 +29,7 @@ HRESULT playGround::init(void)
 
 	mode = 맵툴;	
 	
+	_title = true;
 
 	//vector<string> vStr;
 	//vStr.resize(4);
@@ -63,7 +64,6 @@ void playGround::release(void)
 void playGround::update(void)	
 {
 	gameNode::update();
-	
 
 	//SCENEMANAGER->update();
 	//EFFECTMANAGER->update();
@@ -72,19 +72,21 @@ void playGround::update(void)
 	if (mode == 맵툴)
 	{
 		//if (_mapTool->getCanMove() == false)	return;
-		_mapTool->update();
-		_mM->update();
-		_star->update();
+		if (_title == false)
+		{
+			_mapTool->update();
+			_mM->update();
+			_star->update();
 
-		if (KEYMANAGER->isStayKeyDown('D')&& CAMERAMANAGER->getCameraCenter().x + WINSIZEX / 2<(_mapTool->getCurrentXY().x+22)*32&&CAMERAMANAGER->getCameraCenter().x+WINSIZEX/2<TILESIZEX+500)
-			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x + 50, CAMERAMANAGER->getCameraCenter().y));
-		else if (KEYMANAGER->isStayKeyDown('S') && CAMERAMANAGER->getCameraCenter().y + WINSIZEX / 2<(_mapTool->getCurrentXY().y + 25) * 32&&CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2<TILESIZEY-20)
-			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y + 50));
-		else if (KEYMANAGER->isStayKeyDown('A') && CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2>0)
-			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x - 50, CAMERAMANAGER->getCameraCenter().y));
-		else if (KEYMANAGER->isStayKeyDown('W')&& CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2>0)
-			CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y - 50));
-	
+			if (KEYMANAGER->isStayKeyDown('D') && CAMERAMANAGER->getCameraCenter().x + WINSIZEX / 2 < (_mapTool->getCurrentXY().x + 22) * 32 && CAMERAMANAGER->getCameraCenter().x + WINSIZEX / 2 < TILESIZEX + 500)
+				CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x + 50, CAMERAMANAGER->getCameraCenter().y));
+			else if (KEYMANAGER->isStayKeyDown('S') && CAMERAMANAGER->getCameraCenter().y + WINSIZEX / 2 < (_mapTool->getCurrentXY().y + 25) * 32 && CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2 < TILESIZEY - 20)
+				CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y + 50));
+			else if (KEYMANAGER->isStayKeyDown('A') && CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 > 0)
+				CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x - 50, CAMERAMANAGER->getCameraCenter().y));
+			else if (KEYMANAGER->isStayKeyDown('W') && CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2 > 0)
+				CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y - 50));
+		}
 	}
 }
 
@@ -96,10 +98,37 @@ void playGround::render(void)
 
 	/////////////////////////////////////////////////////////////////////////////////////////////// 이 위로는 건들지 마시오
 	
+	if (_title == true)
+	{
+		draw("title", DC, 0, 0);
+	/*	if (KEYMANAGER->isToggleKey(VK_TAB))
+		{
+			Rectangle(DC, 880, 700, 870 + 170, 700 + 60);
+			Rectangle(DC, 795, 855, 790 + 335, 870 + 60);
+		}*/
+		if (PtInRect(&RectMake(880, 700, 170, 60), _ptMouse))
+		{
+			draw("new", DC, 880, 699);
+			if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
+				_title = false;
+		}
+		if (PtInRect(&RectMake(795, 855, 335, 60), _ptMouse))
+		{
+			draw("continue", DC, 798, 855);
+			if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
+			{
+				_mapTool->load();
+				_title = false;
+			}
+		}
+	}
 	//if (mode == 맵툴)	
-	_mapTool->render();
-	_mM->render();
-	_star->render();
+	else
+	{
+		_mapTool->render();
+		_mM->render();
+		_star->render();
+	}
 	
 	/////////////////////////////////////////////////////////////////////////////////////////////// 이 아래로도 건들지 마시오
 		//IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);
@@ -109,25 +138,27 @@ void playGround::render(void)
 	//IMAGEMANAGER->findImage("카메라DC")->render(UIDC, 54,240,CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
 	//->render(UIDC, 54, 240, CAMERAMANAGER->getCameraPoint().x, CAMERAMANAGER->getCameraPoint().y, 600, 670);
 	
-	IMAGEMANAGER->render("UI", UIDC);
-	//IMAGEMANAGER->render("UI2", UIDC);
-
-	char str[128];
-	SetTextColor(UIDC, RGB(255, 255, 255));
-	SetBkMode(UIDC, TRANSPARENT);
-	HFONT font, oldFont;
-	font = CreateFont(30, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
-		OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
-		DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
-	oldFont = (HFONT)SelectObject(UIDC, font);
-	wsprintf(str, "%d", _mapTool->getMoney(), _mapTool->getMoney());
-	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1280, 25, 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-	wsprintf(str, "%d / %d", _mapTool->getStone(1), _mapTool->getStone(0));
-	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1470,25,200,50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	wsprintf(str, "%d / %d", _mapTool->getFood(1), _mapTool->getFood(0));
-	DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1710,25,200,50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-	SelectObject(UIDC, oldFont);
-	DeleteObject(font);
+	if (_title == false)
+	{
+		IMAGEMANAGER->render("UI", UIDC);
+		//IMAGEMANAGER->render("UI2", UIDC);
+		char str[128];
+		SetTextColor(UIDC, RGB(255, 255, 255));
+		SetBkMode(UIDC, TRANSPARENT);
+		HFONT font, oldFont;
+		font = CreateFont(30, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+			OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+			DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+		oldFont = (HFONT)SelectObject(UIDC, font);
+		wsprintf(str, "%d", _mapTool->getMoney(), _mapTool->getMoney());
+		DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1280, 25, 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		wsprintf(str, "%d / %d", _mapTool->getStone(1), _mapTool->getStone(0));
+		DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1470, 25, 200, 50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		wsprintf(str, "%d / %d", _mapTool->getFood(1), _mapTool->getFood(0));
+		DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1710, 25, 200, 50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		SelectObject(UIDC, oldFont);
+		DeleteObject(font);
+	}
 	TIMEMANAGER->render(UIDC);
 	//if (_mapTool->getCanMove() == true)
 	IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);

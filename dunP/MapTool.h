@@ -25,6 +25,14 @@ struct SAVEF
 	int stone;
 };
 
+struct SAVEM
+{
+	tagCurrentTile current;
+	int stone[2];
+	int food[2];
+	int money;
+};
+
 struct tagMon
 {
 
@@ -76,6 +84,7 @@ private:
 
 	SAVEF		_save[3];									//슬롯에 저장된 맵 정보
 	SAVEF		_savef;										//템프 세이브
+	SAVEM		_savem;
 	image*		_map;										//전체 맵 이미지
 	image*		_tempImg;									//템프이미지
 	image*		_minimap[3];								//미니맵 정보

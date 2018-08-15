@@ -19,6 +19,7 @@ private:
 	int _rock;
 	int _food;
 	
+	bool _title;
 
 public:
 	virtual HRESULT init(void);

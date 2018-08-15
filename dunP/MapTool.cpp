@@ -384,7 +384,7 @@ void MapTool::render()
 		DrawText(UIDC, TEXT("가로길"), strlen("가로길"), &_rc[1], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		DrawText(UIDC, TEXT("세로길"), strlen("세로길"), &_rc[2], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		DrawText(UIDC, TEXT("타일"), strlen("타일"), &_rc[3], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
-		DrawText(UIDC, TEXT("아이템"), strlen("몬스터"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+		DrawText(UIDC, TEXT("상점"), strlen("상점"), &_rc[4], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		DrawText(UIDC, TEXT("몬스터"), strlen("몬스터"), &_rc[5], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		DrawText(UIDC, TEXT("벽삭제"), strlen("아몬터"), &_rc[6], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		DrawText(UIDC, TEXT("다삭제"), strlen("아몬터"), &_rc[7], DT_CENTER | DT_VCENTER | DT_SINGLELINE);
@@ -404,11 +404,11 @@ void MapTool::render()
 				sprintf_s(str2, "%d", _save[i].stone);
 				DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 180, 270 + (i * 260), 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 				DrawText(UIDC, TEXT(str2), strlen(str2), &RectMake(WINSIZEX - 180 + 35, 320 + (i * 260), 200, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-				IMAGEMANAGER->render("stone", UIDC, WINSIZEX - 185, 320 + (i * 260));
+				IMAGEMANAGER->render("stone2", UIDC, WINSIZEX - 185, 320 + (i * 260));
 			}
 			
 		}
-		
+
 		if (_select == MONSTER)
 		{
 			int count=0;
@@ -466,6 +466,21 @@ void MapTool::render()
 				IMAGEMANAGER->findImage("tile")->render(DC, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.left, _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].rc.top);
 			}
 		}
+
+		if (_select == ITEMDRAW)
+		{
+			font = CreateFont(50, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+				OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+				DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+			oldFont = (HFONT)SelectObject(UIDC, font);
+			draw("stone", UIDC, WINSIZEX - 490, 245);
+			draw("food", UIDC, WINSIZEX - 490, 395);
+			draw("tree2", UIDC, WINSIZEX - 490, 545);
+			DrawText(UIDC, TEXT("석재(5)      구입"), strlen("석재(5)      구입"), &RectMake(WINSIZEX - 380, 260, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("식량(5)      구입"), strlen("식량(5)      구입"), &RectMake(WINSIZEX - 380, 410, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("확장(1x1)     구입"), strlen("확장(1x1)     구입"), &RectMake(WINSIZEX - 380, 560, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		}
+
 		SelectObject(UIDC, oldFont);
 		DeleteObject(font);
 		/*
@@ -553,12 +568,29 @@ void MapTool::render()
 
 void MapTool::save()
 {
+	tagTile	_tiles2[TILEX * TILEY];
+
+	for (int j = 0; j < TILEX * TILEY; j++)
+	{
+		if (_tiles[j].object == OBJ_TREE)
+			_tiles[j].object == OBJ_NULL;
+		_tiles2[j] = _tiles[j];
+	}
+
 	HANDLE	file;
 	DWORD	save;
+	file = CreateFile("map/myDungen.map", GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	file = CreateFile(MAPNAME, GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	WriteFile(file, _tiles2, sizeof(tagTile) * TILEX * TILEY, &save, NULL);
+	_savem.current = _currentXY;
+	_savem.food[0] = _food[0];
+	_savem.food[1] = _food[1];
+	_savem.stone[0] = _stone[0];
+	_savem.stone[1] = _stone[1];
+	_savem.money = _money;
+	WriteFile(file, &_savem, sizeof(SAVEF), &save, NULL);
 
-	WriteFile(file, _tiles, sizeof(tagTile) * TILEX * TILEY, &save, NULL);
+	//WriteFile(file, &_mM->getVDmon(), sizeof(?), &save, NULL);
 
 	CloseHandle(file);
 }
@@ -589,33 +621,68 @@ void MapTool::save(int i)
 
 void MapTool::load()
 {
+	for (int i = 0; i < TILEX * TILEY; ++i)
+	{
+		if (_tiles[i].mon != -1)
+		{
+			for (int j = 0; j < _mM->getVDmon().size(); j++)
+			{
+				if (_mM->getVDmon()[j].num == _tiles[i].mon)
+				{
+					_mM->addDmon(_tiles[i].mon);
+					//_mM->setHave(j, _mM->getVDmon()[j].have + 1);
+					break;
+				}
+			}
+		}
+	}
+
 	HANDLE	file;
 	DWORD	load;
 
 	ZeroMemory(&_tiles, sizeof(tagTile) * TILEX * TILEY);
+	ZeroMemory(&_savef, sizeof(SAVEF));
 
-	file = CreateFile(MAPNAME, GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	file = CreateFile("map/myDungen.map", GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	ReadFile(file, _tiles, sizeof(tagTile) * TILEX * TILEY, &load, NULL);
+	ReadFile(file, &_savem, sizeof(SAVEF), &load, NULL);
+	_currentXY = _savem.current;
+	_food[0] = _savem.food[0];
+	_food[1]= _savem.food[1];
+	_stone[0]= _savem.stone[0];
+	_stone[1]=_savem.stone[1];
+	_money= _savem.money;
 
-	//for (int i = 0; i < TILEX * TILEY; i++)
-	//{
-	//	//if (_tiles[i].objFrameX==20 &&_tiles[i].objFrameY==0 )
-	//		//_tiles[i].object = ;
-	//}
+	for (int i = 0; i < TILEX * TILEY; ++i)
+	{
+		if (_tiles[i].mon != -1)
+		{
+			for (int j = 0; j < _mM->getVDmon().size(); j++)
+			{
+				if (_mM->getVDmon()[j].num == _tiles[i].mon)
+				{
+					if (_mM->getVDmon()[j].have > 0)
+						_mM->setHave(j, _mM->getVDmon()[j].have - 1);
+					else
+						_tiles[i].mon = -1;
+					break;
+				}
+			}
+		}
+	}
+
+	for (_viMon = _vMon.begin(); _viMon != _vMon.end();)
+	{
+		_viMon = _vMon.erase(_viMon);
+	}
+	for (int i = 0; i < TILEX * TILEY; i++)
+	{
+		if (_tiles[i].mon != -1)
+			setMon(i);
+	}
 
 	CloseHandle(file);
-
-	
-	/*for (int i = 353; i < TILEX*TILEY; i++)
-	{
-		_tiles[i].terrainFrameX = 596%22;
-		_tiles[i].terrainFrameY = 596/22;
-		_tiles[i].objFrameX = 0;
-		_tiles[i].objFrameY = 0;
-		_tiles[i].terrain = terrainSelect(_tiles[i].terrainFrameX, _tiles[i].terrainFrameY);
-		_tiles[i].object = OBJ_NULL;
-	}*/
 }
 
 void MapTool::load(int i)

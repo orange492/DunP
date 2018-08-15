@@ -16,11 +16,17 @@ HRESULT playGround::Image_init(void)
 	/////////////////////////UI
 	//IMAGEMANAGER->addImage("black", "image/UI/Black(1920x1080).bmp", 0, 0, 1920, 1080, true, RGB(255, 0, 255), true);
 	//IMAGEMANAGER->addImage("gray", "image/UI/gray(1920x1080).bmp", 0, 0, 1920, 1080, false, RGB(255, 0, 255), true);
+	IMAGEMANAGER->addImage("title", "image/UI/title.bmp", 0, 0, 1920, 1080, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("continue", "image/UI/continue.bmp", 0, 0, 400, 100, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("new", "image/UI/new.bmp", 0, 0, 400, 100, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("cursor", "image/UI/cursor.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("UI", "image/UI/UI.bmp", 0, 0, 1920, 1080, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("side", "image/UI/Side.bmp", 0, 0, 1920, 1080, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addFrameImage("button", "image/UI/button.bmp", 0, 0, 160, 120, 1, 2, true, RGB(0, 255, 255));
-	IMAGEMANAGER->addImage("stone", "image/UI/stone.bmp", 0, 0, 30, 34, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("stone2", "image/UI/stone2.bmp", 0, 0, 30, 34, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("stone", "image/UI/stone.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("food", "image/UI/food.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("tree2", "image/UI/tree.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
 
 	/////////////////////////Έχ
 	IMAGEMANAGER->addImage("slot", "image/UI/slot.bmp", 0, 0, 250, 100, true, RGB(0, 255, 255));
