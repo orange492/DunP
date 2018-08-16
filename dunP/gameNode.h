@@ -6,6 +6,7 @@ static image* _backBuffer = IMAGEMANAGER->addImage("backBuffer", TOTALSIZEX, TOT
 
 class gameNode
 {
+
 private:
 	HDC _hdc;
 	bool _managerInit;	//매니져들 초기화 할껀지 여부

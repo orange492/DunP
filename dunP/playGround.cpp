@@ -80,7 +80,7 @@ void playGround::update(void)
 
 			if (KEYMANAGER->isStayKeyDown('D') && CAMERAMANAGER->getCameraCenter().x + WINSIZEX / 2 < (_mapTool->getCurrentXY().x + 22) * 32 && CAMERAMANAGER->getCameraCenter().x + WINSIZEX / 2 < TILESIZEX + 500)
 				CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x + 50, CAMERAMANAGER->getCameraCenter().y));
-			else if (KEYMANAGER->isStayKeyDown('S') && CAMERAMANAGER->getCameraCenter().y + WINSIZEX / 2 < (_mapTool->getCurrentXY().y + 25) * 32 && CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2 < TILESIZEY - 20)
+			else if (KEYMANAGER->isStayKeyDown('S') && CAMERAMANAGER->getCameraCenter().y + WINSIZEX / 2 < (_mapTool->getCurrentXY().y + 23) * 32 && CAMERAMANAGER->getCameraCenter().y + WINSIZEY / 2 < TILESIZEY - 20)
 				CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x, CAMERAMANAGER->getCameraCenter().y + 50));
 			else if (KEYMANAGER->isStayKeyDown('A') && CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2 > 0)
 				CAMERAMANAGER->setCameraCenter(PointMake(CAMERAMANAGER->getCameraCenter().x - 50, CAMERAMANAGER->getCameraCenter().y));
@@ -110,7 +110,16 @@ void playGround::render(void)
 		{
 			draw("new", DC, 880, 699);
 			if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
+			{
+				int rand = RND->getInt(3);
+				if(rand==0)
+					_mM->addDmon(0);
+				else if (rand == 1)
+					_mM->addDmon(3);
+				else if (rand == 2)
+					_mM->addDmon(6);
 				_title = false;
+			}
 		}
 		if (PtInRect(&RectMake(795, 855, 335, 60), _ptMouse))
 		{
@@ -118,6 +127,8 @@ void playGround::render(void)
 			if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
 			{
 				_mapTool->load();
+				_mapTool->checkstone();
+				_mapTool->drawMap();
 				_title = false;
 			}
 		}
@@ -157,9 +168,45 @@ void playGround::render(void)
 		wsprintf(str, "%d / %d", _mapTool->getFood(1), _mapTool->getFood(0));
 		DrawText(UIDC, TEXT(str), strlen(str), &RectMake(1710, 25, 200, 50), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		SelectObject(UIDC, oldFont);
+
+		font = CreateFont(50, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
+			OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
+			DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
+		oldFont = (HFONT)SelectObject(UIDC, font);
+		
+		if (_mapTool->getStage()== 0)
+		{
+			DrawText(UIDC, TEXT("입구 생성 후 플레이어를 선택해주세요"), strlen("입구 생성 후 플레이어를 선택해주세요"), &RectMake(50, -7, 700, 100), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		}
+		else if (_mapTool->getStage() == 1)
+		{
+			DrawText(UIDC, TEXT("전투!"), strlen("전투!"), &RectMake(100, 7, 500, 70), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			if (PtInRect(&RectMake(100, 7, 500, 70), _ptMouse))
+			{
+				SetTextColor(UIDC, RGB(250, 250, 0));
+				DrawText(UIDC, TEXT("전투!"), strlen("전투!"), &RectMake(100, 7, 500, 70), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+				if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
+				{
+					_mapTool->setSide(false);
+					_mapTool->setStage(2);
+					_mapTool->setCount(0);
+					TIMEMANAGER->reset();
+				}
+			}
+		}
+		else if (_mapTool->getStage() == 2)
+		{
+			TIMEMANAGER->render(UIDC);
+			//fdraw("ball", UIDC, 600, 30, 1, 0);
+		}
+		SetTextColor(UIDC, RGB(0, 1, 0));
+		wsprintf(str, "Day %d", _mapTool->getDay());
+		DrawText(UIDC, TEXT(str), strlen(str), &RectMake(850, -7, 200, 100), DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 		DeleteObject(font);
 	}
-	TIMEMANAGER->render(UIDC);
+	draw("ball2", UIDC, 650, 30);
+	IMAGEMANAGER->render("ball3", UIDC, 650, 30,0, 0, (float)_mapTool->getBallCount() * 25 / 1000 , 25);
+
 	//if (_mapTool->getCanMove() == true)
 	IMAGEMANAGER->render("cursor", UIDC, _ptMouse.x, _ptMouse.y);
 	CAMERAMANAGER->render(this->getBackBuffer());

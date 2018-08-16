@@ -120,6 +120,13 @@ struct tagMonster
 	bool dir[4];
 };
 
-
+struct tagMon2
+{
+	int num;
+	int have;
+	int hp;
+	//RECT rc;
+	//bool act;
+};
 
 #endif 

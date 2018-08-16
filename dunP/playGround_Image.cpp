@@ -27,6 +27,13 @@ HRESULT playGround::Image_init(void)
 	IMAGEMANAGER->addImage("stone", "image/UI/stone.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("food", "image/UI/food.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("tree2", "image/UI/tree.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("coin", "image/UI/coin.bmp", 0, 0, 100, 100, true, RGB(0, 255, 255));
+	IMAGEMANAGER->addImage("b0", "image/UI/b0.bmp", 0, 0, 16, 16, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("b1", "image/UI/b1.bmp", 0, 0, 16, 16, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("b2", "image/UI/b2.bmp", 0, 0, 16, 16, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addFrameImage("ball", "image/UI/ball.bmp", 0, 0, 232, 25, 8, 1, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("ball2", "image/UI/ball2.bmp", 0, 0, 25, 25, true, RGB(255, 0, 255));
+	IMAGEMANAGER->addImage("ball3", "image/UI/ball3.bmp", 0, 0, 25, 25, true, RGB(255, 0, 255));
 
 	/////////////////////////Έχ
 	IMAGEMANAGER->addImage("slot", "image/UI/slot.bmp", 0, 0, 250, 100, true, RGB(0, 255, 255));

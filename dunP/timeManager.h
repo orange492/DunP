@@ -14,6 +14,7 @@ public:
 	HRESULT init();
 	void release();
 	void update(float lockFPS = 0.0f);
+	void reset();
 	void render(HDC hdc);
 
 	inline float getElapsedTime() const { return _timer->getElapsedTime(); }

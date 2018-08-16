@@ -39,6 +39,8 @@ HRESULT MapTool::init()
 {
 	_map = new image;
 	_map = IMAGEMANAGER->addImage("field", TILESIZEX, TILESIZEY);
+	_bullet = new Bullet;
+	_bullet->init(50);
 	setup();
 	_select = ROOM;
 	// 버튼 렉트
@@ -61,10 +63,16 @@ HRESULT MapTool::init()
 	_drag = 0;
 	_eraser = true;
 	_side = true;
-	_stone[0] =_stone[1] = 1000;
-	_food[0] =_food[1] = 1000;
+	_stone[0] =_stone[1] = 100;
+	_food[0] =_food[1] = 10;
 	_money = 0;
 	_currentMon = -1;
+	_stage = 0;
+	_day = 1;
+	_monCount = 0;
+	_interval = 300;
+	_bulletCount = 0;
+	_ballCount = 0;
 
 	_mapX = 250, _mapY = 250;
 	for (int i = 0; i < 3; i++)
@@ -79,10 +87,8 @@ HRESULT MapTool::init()
 	_tempImg->init((_currentXY.x + 4)*TILESIZE, (_currentXY.y + 4) * TILESIZE);
 
 	setTree();
-
 	setMinimap2();
-
-	drawMap2();
+	drawMap2(true);
 
 	return S_OK;
 }
@@ -91,9 +97,14 @@ void MapTool::release(){}
 
 void MapTool::update()
 {
-	if (KEYMANAGER->isOnceKeyDown('Z'))
-	{
-		for (_viMon = _vMon.begin(); _viMon != _vMon.end();)
+	_bullet->update();
+	if (_player != 0&&_vRoad.size()!=0&& _stage != 2)
+		_stage = 1;
+	else if(_stage!=2)
+		_stage = 0;
+	//if (KEYMANAGER->isOnceKeyDown('Z'))
+	//{
+	/*	for (_viMon = _vMon.begin(); _viMon != _vMon.end();)
 		{
 			_viMon = _vMon.erase(_viMon);
 		}
@@ -101,79 +112,164 @@ void MapTool::update()
 		{
 			if (_tiles[i].mon != -1)
 				setMon(i);
+		}*/
+		//save();
+		//_stage++;
+	//}
+
+	if (_stage == 2)
+	{
+		_monCount++;
+		if (_monCount% _interval == 100)
+		{
+			int rand = 0;
+			int dir = 0;
+			int player = _player;
+			if (_mM->getDex(_tiles[_player].mon).size.x > 2)
+				player += 1;
+			if (_mM->getDex(_tiles[_player].mon).size.y > 2)
+				player += 100;
+			rand = RND->getInt(_vDoor.size());
+			while (_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y).size() == 0)
+				rand = RND->getInt(_vDoor.size());
+			if (_tiles[_vDoor[rand] - TILEX].terrain == TR_NULL)
+				dir = 0;
+			if (_tiles[_vDoor[rand] + TILEX].terrain == TR_NULL)
+				dir = 1;
+			if (_tiles[_vDoor[rand] + 1].terrain == TR_NULL)
+				dir = 2;
+			if (_tiles[_vDoor[rand] - 1].terrain == TR_NULL)
+				dir = 3;
+			
+			int rand2 = 0;
+
+			if(_interval<100)
+				rand2 = RND->getInt(15);
+			else if(_interval<150)
+				rand2 = RND->getInt(12);
+			else if (_interval<200)
+				rand2 = RND->getInt(9);
+			else if (_interval<250)
+				rand2 = RND->getInt(6);
+			else
+				rand2 = RND->getInt(3);
+			if (rand2 == 1)
+				rand2 = 3;
+			else if (rand2 == 2)
+				rand2 = 6;
+			else if (rand2 == 3)
+				rand2 = 1;
+			else if (rand2 == 5)
+				rand2 = 7;
+			else if (rand2 == 6)
+				rand2 = 2;
+			else if (rand2 == 7)
+				rand2 = 5;
+			else if (rand2 == 10)
+				rand2 = 13;
+			else if (rand2 == 13)
+				rand2 = 10;
+
+			_mM->addEmon(100, rand2, dir, _star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
+	
+			if(_interval>50)
+				_interval -= 2;
+		}
+
+		if (_tiles[_player].mon == -1)
+		{
+			save();
+			_side = true;
+			_monCount = 0;
+			_interval = 300;
+			_mM->eraseEmon();
+			_stage = 0;
+			_ballCount = 0;
+			_day++;
+			_player = 0;
+			for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
+			{
+				_viRoad = _vRoad.erase(_viRoad);
+			}
+			_bullet->resetBullet();
+			drawMap();
 		}
 	}
-	if (KEYMANAGER->isOnceKeyDown('X'))
-	{
-		int rand=0;
-		int dir = 0;
-		int player=_player;
-		if (_mM->getDex(_tiles[_player].mon).size.x > 2)
-			player += 1;
-		if (_mM->getDex(_tiles[_player].mon).size.y > 2)
-			player += 100;
-		rand = RND->getInt(_vDoor.size());
-		while(_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y).size()==0)
-			rand = RND->getInt(_vDoor.size());
-		if (_tiles[_vDoor[rand] - TILEX].terrain == TR_NULL)
-			dir = 0;
-		if (_tiles[_vDoor[rand] + TILEX].terrain == TR_NULL)
-			dir = 1;
-		if (_tiles[_vDoor[rand] +1].terrain == TR_NULL)
-			dir = 2;
-		if (_tiles[_vDoor[rand] -1].terrain == TR_NULL)
-			dir = 3;
-		int rand2 = RND->getInt(15);
-		_mM->addEmon(100,rand2, dir,_star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
-	}
 
+	_mouseTile[0].x = getMemDCPoint().x / 32;
+	_mouseTile[0].y = getMemDCPoint().y / 32;
+	monFrame();
+	monUpdate();
+	collision();
+	char str[128];
+	if (_stage == 2)
+	{
+		if (_bulletCount < 15)
+			_bulletCount++;
+		if (_ballCount < 1000)
+			_ballCount++;
+	}
 	if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON))
 	{
-		if(_side==true)
-			setmap();
-		if ((_ptMouse.x < 1400 && _side == true)|| _side == false)
+		if (_stage != 2&&_ptMouse.y>80)
 		{
-			_mouseTile[1] = _mouseTile[0];
-			_drag = 1;
-		}
-
-		if (_select == MONSTER)
-		{
-			for (int i = 0; i < 14; i++)
+			if (_side == true)
+				setmap();
+			if ((_ptMouse.x < 1400 && _side == true) || _side == false)
 			{
-				if (PtInRect(&RectMake(1414 + (i % 2 * 250), 170 + (i / 2 * 110), 220, 100), _ptMouse) && _mM->getVDmon().size() != i + CAMERAMANAGER->getScroll() * 2)
+				_mouseTile[1] = _mouseTile[0];
+				_drag = 1;
+			}
+
+			if (_select == MONSTER)
+			{
+				for (int i = 0; i < 14; i++)
 				{
-					if (_mM->getVDmon().size() < i) break;
-					if (_currentMon == i + CAMERAMANAGER->getScroll() * 2 &&_mM->getDex(_mM->getVDmon()[_currentMon].num).evolution == true&& _mM->getVDmon()[_currentMon].have>1)
+					if (PtInRect(&RectMake(1414 + (i % 2 * 250), 170 + (i / 2 * 110), 220, 100), _ptMouse) && _mM->getVDmon().size() != i + CAMERAMANAGER->getScroll() * 2)
 					{
-						_mM->setHave(_currentMon,_mM->getVDmon()[_currentMon].have - 2);
-						_mM->addDmon(_mM->getVDmon()[_currentMon].num+1);
-						if(_mM->getVDmon()[_currentMon].have==0)
-							_mM->eraseDmon(_currentMon);
-						//_mM->evolution(0, _currentMon);
-						
-						_currentMon = -1;
+						if (_mM->getVDmon().size() < i) break;
+						if (_currentMon == i + CAMERAMANAGER->getScroll() * 2 && _mM->getDex(_mM->getVDmon()[_currentMon].num).evolution == true && _mM->getVDmon()[_currentMon].have > 1)
+						{
+							_mM->setHave(_currentMon, _mM->getVDmon()[_currentMon].have - 2);
+							_mM->addDmon(_mM->getVDmon()[_currentMon].num + 1);
+							if (_mM->getVDmon()[_currentMon].have == 0)
+								_mM->eraseDmon(_currentMon);
+							//_mM->evolution(0, _currentMon);
+
+							_currentMon = -1;
+							drawList(_currentMon);
+							break;
+						}
+						else if (_currentMon == i + CAMERAMANAGER->getScroll() * 2)
+						{
+							_currentMon = -1;
+							drawList(_currentMon);
+							break;
+						}
+						_currentMon = i + CAMERAMANAGER->getScroll() * 2;
 						drawList(_currentMon);
 						break;
 					}
-					else if (_currentMon == i + CAMERAMANAGER->getScroll() * 2)
-					{
-						_currentMon = -1;
-						drawList(_currentMon);
-						break;
-					}
-					_currentMon = i + CAMERAMANAGER->getScroll() * 2;
-					drawList(_currentMon);
-					break;
 				}
 			}
-		}
 
-		if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON&& _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos!=MPOS_0)
-		{
-			tagCurrentTile mouseTile = _mouseTile[0];
-			mouseTile = findMon(mouseTile);
-		/*	if (_player == mouseTile.x + (mouseTile.y) * 100)
+			if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON && _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos != MPOS_0)
+			{
+				tagCurrentTile mouseTile = _mouseTile[0];
+				mouseTile = findMon(mouseTile);
+				/*	if (_player == mouseTile.x + (mouseTile.y) * 100)
+					{
+						_player = 0;
+						for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
+						{
+							_viRoad = _vRoad.erase(_viRoad);
+						}
+					}
+					else*/
+				_player = mouseTile.x + (mouseTile.y) * 100;
+				findRoad();
+			}
+			else if (_stage == 0)
 			{
 				_player = 0;
 				for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
@@ -181,21 +277,36 @@ void MapTool::update()
 					_viRoad = _vRoad.erase(_viRoad);
 				}
 			}
-			else*/
-			_player = mouseTile.x + (mouseTile.y) * 100;
-			findRoad();
 		}
-		else
+		else if(_stage==2&&_bulletCount>=15)
 		{
-			_player = 0;
-			for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
-			{
-				_viRoad = _vRoad.erase(_viRoad);
-			}
+			int bulletloca= _player;
+			if (_tiles[_player].mon == 1)
+				bulletloca = _player + 100;
+			else if (_tiles[_player].mon == 2)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 5)
+				bulletloca = _player + 100;
+			else if (_tiles[_player].mon == 8)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 10)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 12)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 13)
+				bulletloca = _player + 100;
+			else if (_tiles[_player].mon == 14)
+				bulletloca = _player + 101;
+			sprintf_s(str, "b%d", (int)_mM->getDex(_tiles[_player].mon).type);
+			_bullet->bulletFire(str, _tiles[bulletloca].rc.left + 16, _tiles[bulletloca].rc.top + 16,
+				GetAngle(_tiles[bulletloca].rc.left + 16, _tiles[bulletloca].rc.top + 16, _ptMouse.x+CAMERAMANAGER->getCameraCenter().x-WINSIZEX/2, _ptMouse.y + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2),
+				(int)_mM->getDex(_tiles[_player].mon).power, (int)_mM->getDex(_tiles[_player].mon).spd, (int)_mM->getDex(_tiles[_player].mon).type);
+			_bulletCount = 0;
 		}
 	}
 	else if (KEYMANAGER->isOnceKeyUp(VK_LBUTTON)&&(_drag!=0||_select>4))
 	{
+		if (_stage == 2) return;
 		//if ((_ptMouse.x < 1400 && _side == true) || _side == false)
 		{
 			if (_select == ROOM)
@@ -220,28 +331,50 @@ void MapTool::update()
 	}
 	else if (KEYMANAGER->isOnceKeyDown(VK_RBUTTON))
 	{
-		if ((_ptMouse.x < 1400 && _side == true) || _side == false)
+		if (_stage != 2)
 		{
-			if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object==OBJ_MON&& _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos!=MPOS_0)
+			if ((_ptMouse.x < 1400 && _side == true) || _side == false)
 			{
-				cancelMon(_mouseTile[0],false);
-			}
-			else
-			{
-				_mouseTile[1] = _mouseTile[0];
-				_drag = -1;
+				if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON && _tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].monPos != MPOS_0)
+				{
+					cancelMon(_mouseTile[0], false, false);
+				}
+				else
+				{
+					_mouseTile[1] = _mouseTile[0];
+					_drag = -1;
+				}
 			}
 		}
-		
+		else if (_stage == 2 && _ballCount >= 1000)
+		{
+			int bulletloca = _player;
+			if (_tiles[_player].mon == 1)
+				bulletloca = _player + 100;
+			else if (_tiles[_player].mon == 2)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 5)
+				bulletloca = _player + 100;
+			else if (_tiles[_player].mon == 8)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 10)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 12)
+				bulletloca = _player + 101;
+			else if (_tiles[_player].mon == 13)
+				bulletloca = _player + 100;
+			else if (_tiles[_player].mon == 14)
+				bulletloca = _player + 101;
+			sprintf_s(str, "ball", (int)_mM->getDex(_tiles[_player].mon).type);
+			_bullet->ballFire(_tiles[bulletloca].rc.left + 16, _tiles[bulletloca].rc.top + 16,
+				GetAngle(_tiles[bulletloca].rc.left + 16, _tiles[bulletloca].rc.top + 16, _ptMouse.x + CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, _ptMouse.y + CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2));
+			_ballCount = 0;
+		}
 	}
 	else if (KEYMANAGER->isOnceKeyUp(VK_RBUTTON) && _drag != 0)
 	{
+		if (_stage == 2) return;
 		_eraser==false ?	_drag = 7 : _drag=8;
-	}
-
-	if (KEYMANAGER->isOnceKeyDown('E'))
-	{
-		_side == true ? _side = false : _side = true;
 	}
 
 	//else if (KEYMANAGER->isOnceKeyDown('Y'))
@@ -262,11 +395,6 @@ void MapTool::update()
 
 	/*for (int i = 0; i < TILEX * TILEY; i++)
 	{*/
-	_mouseTile[0].x = getMemDCPoint().x / 32;
-	_mouseTile[0].y = getMemDCPoint().y / 32;
-	//}
-	monFrame();
-	monUpdate();
 }
 
 void MapTool::render()
@@ -469,16 +597,67 @@ void MapTool::render()
 
 		if (_select == ITEMDRAW)
 		{
+			int stonePrice=100;
+			int foodPrice=100;
+			int treePrice=500;
+			char str[128];
 			font = CreateFont(50, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
 				OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
 				DEFAULT_PITCH | FF_SWISS, TEXT("HY얕은샘물M"));
 			oldFont = (HFONT)SelectObject(UIDC, font);
-			draw("stone", UIDC, WINSIZEX - 490, 245);
-			draw("food", UIDC, WINSIZEX - 490, 395);
-			draw("tree2", UIDC, WINSIZEX - 490, 545);
-			DrawText(UIDC, TEXT("석재(5)      구입"), strlen("석재(5)      구입"), &RectMake(WINSIZEX - 380, 260, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-			DrawText(UIDC, TEXT("식량(5)      구입"), strlen("식량(5)      구입"), &RectMake(WINSIZEX - 380, 410, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-			DrawText(UIDC, TEXT("확장(1x1)     구입"), strlen("확장(1x1)     구입"), &RectMake(WINSIZEX - 380, 560, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			draw("stone", UIDC, WINSIZEX - 470, 270);
+			draw("food", UIDC, WINSIZEX - 470, 500);
+			draw("tree2", UIDC, WINSIZEX - 470, 730);
+			draw("coin", UIDC, WINSIZEX - 300, 320);
+			draw("coin", UIDC, WINSIZEX - 300, 550);
+			draw("coin", UIDC, WINSIZEX - 290, 780);
+			sprintf_s(str, "%d", stonePrice);
+			DrawText(UIDC, TEXT("석재(5)"), strlen("석재(5)"), &RectMake(WINSIZEX - 360, 260, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 360, 330, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("식량(5)"), strlen("식량(5)"), &RectMake(WINSIZEX - 360, 490, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			sprintf_s(str, "%d", foodPrice);
+			DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 360, 560, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("확장(1x1)"), strlen("확장(1x1)"), &RectMake(WINSIZEX - 360, 720, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			sprintf_s(str, "%d", treePrice);
+			DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 360, 790, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("구입"), strlen("구입"), &RectMake(WINSIZEX - 160, 290, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("구입"), strlen("구입"), &RectMake(WINSIZEX - 160, 520, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("구입"), strlen("구입"), &RectMake(WINSIZEX - 160, 750, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+
+			SetTextColor(UIDC, RGB(230, 25, 40));
+			if (PtInRect(&RectMake(WINSIZEX - 160, 290, 300, 50), _ptMouse))
+			{
+				DrawText(UIDC, TEXT("구입"), strlen("구입"), &RectMake(WINSIZEX - 160, 290, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON) && _money >= stonePrice)
+				{
+					_money -= stonePrice;
+					_stone[0] += 5;
+					_stone[1] += 5;
+				}
+
+			}
+			else if (PtInRect(&RectMake(WINSIZEX - 160, 520, 300, 50), _ptMouse))
+			{
+				DrawText(UIDC, TEXT("구입"), strlen("구입"), &RectMake(WINSIZEX - 160, 520, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON) && _money >= foodPrice)
+				{
+					_money -= foodPrice;
+					_food[0] += 5;
+					_food[1] += 5;
+				}
+			}
+			else if (PtInRect(&RectMake(WINSIZEX - 160, 750, 300, 50), _ptMouse))
+			{
+				DrawText(UIDC, TEXT("구입"), strlen("구입"), &RectMake(WINSIZEX - 160, 750, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+				if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON) && _money >= treePrice)
+				{
+					_money -= treePrice;
+					_currentXY.x++;
+					_currentXY.y++;
+					setTree();
+					drawMap2(false);
+				}
+			}
 		}
 
 		SelectObject(UIDC, oldFont);
@@ -562,6 +741,8 @@ void MapTool::render()
 	for (_viMon = _vMon.begin(); _viMon != _vMon.end(); _viMon++)
 		(*_viMon).hpbar->render();
 
+	_bullet->render();
+
 	if (_side == true)
 		IMAGEMANAGER->render("side", DC, CAMERAMANAGER->getCameraCenter().x - WINSIZEX / 2, CAMERAMANAGER->getCameraCenter().y - WINSIZEY / 2);
 }
@@ -588,9 +769,13 @@ void MapTool::save()
 	_savem.stone[0] = _stone[0];
 	_savem.stone[1] = _stone[1];
 	_savem.money = _money;
-	WriteFile(file, &_savem, sizeof(SAVEF), &save, NULL);
+	_savem.day = _day;
+	WriteFile(file, &_savem, sizeof(SAVEM), &save, NULL);
 
-	//WriteFile(file, &_mM->getVDmon(), sizeof(?), &save, NULL);
+	int size = _mM->getVDmon().size();
+	WriteFile(file, &size, sizeof(int), &save, NULL);
+	for(int i=0;i<size;i++)
+		WriteFile(file, &_mM->getVDmon()[i], sizeof(tagMon2), &save, NULL);
 
 	CloseHandle(file);
 }
@@ -639,6 +824,9 @@ void MapTool::load()
 
 	HANDLE	file;
 	DWORD	load;
+	int size;
+	vector<tagMon2>				vmon;
+	vector<tagMon2>::iterator	vimon;
 
 	ZeroMemory(&_tiles, sizeof(tagTile) * TILEX * TILEY);
 	ZeroMemory(&_savef, sizeof(SAVEF));
@@ -646,13 +834,24 @@ void MapTool::load()
 	file = CreateFile("map/myDungen.map", GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	ReadFile(file, _tiles, sizeof(tagTile) * TILEX * TILEY, &load, NULL);
-	ReadFile(file, &_savem, sizeof(SAVEF), &load, NULL);
+	ReadFile(file, &_savem, sizeof(SAVEM), &load, NULL);
+	ReadFile(file, &size, sizeof(int), &load, NULL);
+	for (int i = 0; i < size; i++)
+	{
+		tagMon2	mon;
+		ZeroMemory(&mon, sizeof(tagMon2));
+		ReadFile(file, &mon, sizeof(tagMon2), &load, NULL);
+		vmon.push_back(mon);
+	}
+	_mM->setVDmon(vmon);
+
 	_currentXY = _savem.current;
 	_food[0] = _savem.food[0];
 	_food[1]= _savem.food[1];
 	_stone[0]= _savem.stone[0];
 	_stone[1]=_savem.stone[1];
 	_money= _savem.money;
+	_day = _savem.day;
 
 	for (int i = 0; i < TILEX * TILEY; ++i)
 	{
@@ -1834,7 +2033,7 @@ void MapTool::dragMake()
 					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos != MPOS_0 /*&&(i==0||j==0)*/)
 					{
 						mouseTile = { LT2.x + j , LT2.y + i };
-						cancelMon(mouseTile,true);
+						cancelMon(mouseTile,true,false);
 					}
 				/*	else if (_tiles[temp].mon != -1)
 					{
@@ -1869,7 +2068,7 @@ void MapTool::dragMake()
 					if (_tiles[temp].object == OBJ_MON && _tiles[temp].monPos!=MPOS_0 /*&& (i == 0 || j == 0)*/)
 					{
 						mouseTile = { LT2.x + j , LT2.y + i };
-						cancelMon(mouseTile, true);
+						cancelMon(mouseTile, true,false);
 					}
 					/*else if (_tiles[temp].mon != -1)
 					{
@@ -2208,7 +2407,7 @@ void MapTool::drawMap()
 	}
 }
 
-void MapTool::drawMap2()
+void MapTool::drawMap2(bool first)
 {
 	char str[128];
 	// 지형
@@ -2231,10 +2430,20 @@ void MapTool::drawMap2()
 			if (_tiles[i].object == OBJ_MON && _tiles[i].monPos == MPOS_0)
 				draw("tile", MAP, _tiles[i].rc.left, _tiles[i].rc.top);
 		}
-		if (_tiles[i].mon != -1)
+		if (first == true)
 		{
-			sprintf_s(str, "a%d", _tiles[i].mon);
-			fdraw(str, MAP, _tiles[i].rc.left, _tiles[i].rc.top);
+			if (_tiles[i].mon != -1)
+			{
+				sprintf_s(str, "a%d", _tiles[i].mon);
+				fdraw(str, MAP, _tiles[i].rc.left, _tiles[i].rc.top);
+			}
+		}
+	}
+	if (_vRoad.size() > 0)
+	{
+		for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end(); _viRoad++)
+		{
+			IMAGEMANAGER->render("road", MAP, _tiles[*_viRoad].rc.left, _tiles[*_viRoad].rc.top);
 		}
 	}
 }
@@ -2259,15 +2468,16 @@ void MapTool::drawList(int num)
 		if (_mM->getVDmon()[i].have > 0)
 			sprintf_s(str, "%s x %d", _mM->getDex(_mM->getVDmon()[i].num).name.c_str(), _mM->getVDmon()[i].have);
 		else
-			sprintf_s(str, "%s", _mM->getDex(_mM->getVDmon()[i].num).name.c_str());
+			sprintf_s(str, "%d %s", _mM->getDex(_mM->getVDmon()[i].num).food,_mM->getDex(_mM->getVDmon()[i].num).name.c_str());
 		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(56 + (i % 2 * 250), 57 + (i / 2 * 110), 150, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-		sprintf_s(str, "HP:%d", _mM->getDex(_mM->getVDmon()[i].num).hp, _mM->getDex(_mM->getVDmon()[i].num).power, _mM->getDex(_mM->getVDmon()[i].num).hp);
-		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(8 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-		sprintf_s(str, "ATT:%d", _mM->getDex(_mM->getVDmon()[i].num).hp, _mM->getDex(_mM->getVDmon()[i].num).power, _mM->getDex(_mM->getVDmon()[i].num).power);
-		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(78 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
-		sprintf_s(str, "SPD:%d", _mM->getDex(_mM->getVDmon()[i].num).hp, _mM->getDex(_mM->getVDmon()[i].num).power, _mM->getDex(_mM->getVDmon()[i].num).atSpd);
+		sprintf_s(str, "%d HP:%d", _mM->getDex(_mM->getVDmon()[i].num).food,(int)_mM->getDex(_mM->getVDmon()[i].num).hp);
+		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(10 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		sprintf_s(str, "ATT:%d", _mM->getDex(_mM->getVDmon()[i].num).power);
+		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(96 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+		sprintf_s(str, "SPD:%.1f", (float)_mM->getDex(_mM->getVDmon()[i].num).spd);
 		DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(148 + (i % 2 * 250), 105 + (i / 2 * 110), 400, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 	}
+
 	//sprintf_s(str, "%d", _mM->getVDmon().size());
 	//TextOut(UIDC, 100, 200, str, strlen(str));
 	//DrawText(UIDC2, TEXT(str), strlen(str), &RectMake(100, 100, 100, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
@@ -2279,7 +2489,7 @@ void MapTool::drawList(int num)
 	DeleteObject(font);
 }
 
-void MapTool::cancelMon(tagCurrentTile i, bool drag)
+void MapTool::cancelMon(tagCurrentTile i, bool drag, bool die)
 {
 	tagCurrentTile mouseTile=i;
 	//if (_tiles[_mouseTile[0].x + (_mouseTile[0].y) * 100].object == OBJ_MON)
@@ -2301,7 +2511,8 @@ void MapTool::cancelMon(tagCurrentTile i, bool drag)
 				_tiles[mouseTile.x + j + (mouseTile.y + i) * 100].object = OBJ_NULL;
 		}
 	}
-	_mM->addDmon(_tiles[mouseTile.x + (mouseTile.y) * 100].mon);
+	if(die==false)
+		_mM->addDmon(_tiles[mouseTile.x + (mouseTile.y) * 100].mon);
 	_food[1] += _mM->getDex(_tiles[mouseTile.x + (mouseTile.y) * 100].mon).food;
 	_tiles[mouseTile.x + (mouseTile.y) * 100].mon = -1;
 	
@@ -2519,6 +2730,7 @@ void MapTool::monUpdate()
 						}
 					}
 				}
+
 				if (num != 0)
 				{
 					_tiles[num].fight = 1;
@@ -2536,14 +2748,67 @@ void MapTool::monUpdate()
 		if (_vMon[i].hp <= 0)
 		{
 			tagCurrentTile Tile = { _vMon[i].tile%TILEX ,_vMon[i].tile/TILEX };
-			cancelMon(Tile, false);
+			if (_vMon[i].tile == _player)
+				_mM->addDmon(_tiles[_player].mon);
+			cancelMon(Tile, false,true);
 			i--;
 		}
 	}
 }
 
+void MapTool::collision()
+{
+	
+	for (int i=0;i<_bullet->getVBullet().size();i++)
+	{
+		if (_bullet->getVBullet()[i].x < 32*2|| _bullet->getVBullet()[i].y <32*5|| _bullet->getVBullet()[i].x > (_currentXY.x+2)*32|| _bullet->getVBullet()[i].y >(_currentXY.y + 5) * 32)
+			_bullet->removeBullet(i);
+	}
+	if (_bullet->getBall().x < 32 * 2 || _bullet->getBall().y <32 * 5 || _bullet->getBall().x >(_currentXY.x + 2) * 32 || _bullet->getBall().y >(_currentXY.y + 5) * 32)
+		_bullet->setBallFire(false);
+	for (int j = 0; j < _mM->getEmon().size(); j++)
+	{
+		RECT temp;
+		if (IntersectRect(&temp, &_bullet->getBallRc(), &_mM->getEmon()[j]->getRc()))
+		{
+			int rand = RND->getInt(2);
+			_bullet->setBallFire(false);
+			_bullet->setBallFire(false);
+			if (rand == 1)
+			{
+				_mM->addDmon(_mM->getEmon()[j]->getDex().num);
+				_tiles[_mM->getEmon()[j]->getLoca()].fight=false;
+				_mM->deleteEmon(j);
+			}
+		}
+		for (int i = 0; i < _bullet->getVBullet().size(); i++)
+		{
+			if (IntersectRect(&temp, &_bullet->getVBullet()[i].rc, &_mM->getEmon()[j]->getRc()))
+			{
+				if(_bullet->getVBullet()[i].type- _mM->getEmon()[j]->getDex().type==1|| _bullet->getVBullet()[i].type - _mM->getEmon()[j]->getDex().type == -2)
+					_mM->getEmon()[j]->setHp(_mM->getEmon()[j]->getHp() - (_bullet->getVBullet()[i].power * 2)*1.5);
+				else
+					_mM->getEmon()[j]->setHp(_mM->getEmon()[j]->getHp() - _bullet->getVBullet()[i].power * 2);
+				_bullet->removeBullet(i);
+				continue;
+			}
+		}
+	}
+	////if (KEYMANAGER->isToggleKey(VK_TAB))
+	////{
+	////	for (int i = 0; i < _bullet->getVBullet().size(); i++)
+	////	{
+	////		Rectangle(DC, _bullet->getVBullet()[i].rc.left, _bullet->getVBullet()[i].rc.top, _bullet->getVBullet()[i].rc.right, _bullet->getVBullet()[i].rc.bottom);
+	////	}
+	////	for (int j = 0; j < _mM->getEmon().size(); j++)
+	////	{
+	////		Rectangle(DC, _mM->getEmon()[j]->getRc().left, _mM->getEmon()[j]->getRc().top, _mM->getEmon()[j]->getRc().right, _mM->getEmon()[j]->getRc().bottom);
+	////	}
+	////}
+}
+
 MapTool::MapTool()
-	: _currentXY({50,50}), _currentTileO({ 0,0 }),_currentTileT({ 5,0 }), _player(0)
+	: _currentXY({20,20}), _currentTileO({ 0,0 }),_currentTileT({ 5,0 }), _player(0)
 {}
 
 MapTool::~MapTool(){}

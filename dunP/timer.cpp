@@ -63,6 +63,11 @@ void timer::tick(float lockFPS)
 	}
 }
 
+void timer::resetTime()
+{
+	_worldTime = 0;
+}
+
 unsigned long timer::getFrameRate(char * str) const
 {
 	if (str != NULL)

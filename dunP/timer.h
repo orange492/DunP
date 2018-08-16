@@ -23,9 +23,10 @@ public:
 
 	HRESULT init();
 	void tick(float lockFPS = 0.0f);
+	void resetTime();
 	unsigned long getFrameRate(char* str = NULL) const;
 
 	inline float getElapsedTime(void) const { return _timeElapsed; }
-	inline float getWorldTime(void) const { return _worldTime; }
+	inline float getWorldTime(void) const { return (int)_worldTime; }
 };
 
