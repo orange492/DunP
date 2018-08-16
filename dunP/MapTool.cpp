@@ -3,7 +3,6 @@
 #include "monsterManager.h"
 #include "star.h"
 
-//오브젝트그리기-사라지는거,덮을때 빨개지는거 헤결하자!//걍두기로함
 //지우개, 전체지우개, 그리개 - 나무 막아둠
 //바위갯수 넘었을 때, 나무걸렸을때 빨강
 //있던 벽에 연결하면  자연스럽게 하기
@@ -19,20 +18,9 @@
 //공격타일설정
 //죽으면파이트해제,방향
 //탭키
-
-//타이틀 - 옵션(사운드), 랭킹, 멀티
-//듀토리얼
-//랜덤맵
+//플레이어,속성
 //공속,공격방향
 
-//배치몬 피차기
-//배속
-
-//포획필드
-//타이틀 - 뉴, 컨티뉴
-//플레이어,속성
-//사라질때끊기는거
-//리셋버튼
 
 
 HRESULT MapTool::init()
@@ -63,14 +51,15 @@ HRESULT MapTool::init()
 	_drag = 0;
 	_eraser = true;
 	_side = true;
-	_stone[0] =_stone[1] = 100;
-	_food[0] =_food[1] = 10;
-	_money = 0;
+	_currentXY = { 35,35 };
+	_stone[0] =_stone[1] = 500;
+	_food[0] =_food[1] = 50;
+	_money = 1600;
 	_currentMon = -1;
 	_stage = 0;
 	_day = 1;
 	_monCount = 0;
-	_interval = 300;
+	_interval = 250;
 	_bulletCount = 0;
 	_ballCount = 0;
 
@@ -143,13 +132,13 @@ void MapTool::update()
 			
 			int rand2 = 0;
 
-			if(_interval<100)
+			if(_interval<50)
 				rand2 = RND->getInt(15);
-			else if(_interval<150)
+			else if(_interval<100)
 				rand2 = RND->getInt(12);
-			else if (_interval<200)
+			else if (_interval<150)
 				rand2 = RND->getInt(9);
-			else if (_interval<250)
+			else if (_interval<200)
 				rand2 = RND->getInt(6);
 			else
 				rand2 = RND->getInt(3);
@@ -172,20 +161,20 @@ void MapTool::update()
 
 			_mM->addEmon(100, rand2, dir, _star->findRoad(_vDoor[rand], player, _player - 101, _mM->getDex(_tiles[_player].mon).size.x, _mM->getDex(_tiles[_player].mon).size.y));
 	
-			if(_interval>50)
-				_interval -= 2;
+			if(_interval>30)
+				_interval -= 5;
 		}
 
 		if (_tiles[_player].mon == -1)
 		{
-			save();
 			_side = true;
 			_monCount = 0;
-			_interval = 300;
+			_interval = 250;
 			_mM->eraseEmon();
 			_stage = 0;
 			_ballCount = 0;
 			_day++;
+			save();
 			_player = 0;
 			for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
 			{
@@ -266,10 +255,19 @@ void MapTool::update()
 						}
 					}
 					else*/
-				_player = mouseTile.x + (mouseTile.y) * 100;
+				if(_player==0)
+					_player = mouseTile.x + (mouseTile.y) * 100;
+				else
+				{
+					_player = 0;
+					for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
+					{
+						_viRoad = _vRoad.erase(_viRoad);
+					}
+				}
 				findRoad();
 			}
-			else if (_stage == 0)
+			else if (_stage != 2)
 			{
 				_player = 0;
 				for (_viRoad = _vRoad.begin(); _viRoad != _vRoad.end();)
@@ -612,7 +610,7 @@ void MapTool::render()
 			draw("coin", UIDC, WINSIZEX - 300, 550);
 			draw("coin", UIDC, WINSIZEX - 290, 780);
 			sprintf_s(str, "%d", stonePrice);
-			DrawText(UIDC, TEXT("석재(5)"), strlen("석재(5)"), &RectMake(WINSIZEX - 360, 260, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+			DrawText(UIDC, TEXT("석재(10)"), strlen("석재(10)"), &RectMake(WINSIZEX - 360, 260, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 			DrawText(UIDC, TEXT(str), strlen(str), &RectMake(WINSIZEX - 360, 330, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 			DrawText(UIDC, TEXT("식량(5)"), strlen("식량(5)"), &RectMake(WINSIZEX - 360, 490, 300, 50), DT_LEFT | DT_VCENTER | DT_SINGLELINE);
 			sprintf_s(str, "%d", foodPrice);
@@ -631,8 +629,8 @@ void MapTool::render()
 				if (KEYMANAGER->isOnceKeyDown(VK_LBUTTON) && _money >= stonePrice)
 				{
 					_money -= stonePrice;
-					_stone[0] += 5;
-					_stone[1] += 5;
+					_stone[0] += 10;
+					_stone[1] += 10;
 				}
 
 			}
@@ -770,6 +768,7 @@ void MapTool::save()
 	_savem.stone[1] = _stone[1];
 	_savem.money = _money;
 	_savem.day = _day;
+
 	WriteFile(file, &_savem, sizeof(SAVEM), &save, NULL);
 
 	int size = _mM->getVDmon().size();
@@ -829,12 +828,13 @@ void MapTool::load()
 	vector<tagMon2>::iterator	vimon;
 
 	ZeroMemory(&_tiles, sizeof(tagTile) * TILEX * TILEY);
-	ZeroMemory(&_savef, sizeof(SAVEF));
+	//ZeroMemory(&_savef, sizeof(SAVEF));
 
 	file = CreateFile("map/myDungen.map", GENERIC_READ, NULL, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
 	ReadFile(file, _tiles, sizeof(tagTile) * TILEX * TILEY, &load, NULL);
 	ReadFile(file, &_savem, sizeof(SAVEM), &load, NULL);
+	ReadFile(file, &_day, sizeof(int), &load, NULL);
 	ReadFile(file, &size, sizeof(int), &load, NULL);
 	for (int i = 0; i < size; i++)
 	{
@@ -878,7 +878,10 @@ void MapTool::load()
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
 		if (_tiles[i].mon != -1)
+		{
 			setMon(i);
+			_monNum++;
+		}
 	}
 
 	CloseHandle(file);
@@ -941,7 +944,10 @@ void MapTool::load(int i)
 	for (int i = 0; i < TILEX * TILEY; i++)
 	{
 		if (_tiles[i].mon != -1)
+		{
 			setMon(i);
+			_monNum++;
+		}
 	}
 
 	CloseHandle(file);
@@ -1104,7 +1110,6 @@ TERRAIN MapTool::terrainSelect(int FrameX, int FrameY)
 			if (FrameX == i && FrameY == j) return TR_WALL;
 		}
 	}*/
-
 	return TR_FLOOR;
 }
 
@@ -1117,88 +1122,6 @@ OBJECT MapTool::objSelect(int FrameX, int FrameY)
 			if (FrameX == i && FrameY == j) return OBJ_WALL;
 		}
 	}
-
-	//for (int i = 3; i < 13; i++)
-	//{
-	//	for (int j = 0; j < 3; j++)
-	//	{
-	//		if (FrameX == i && FrameY == j) return OBJ_GROUND; 
-	//	}
-	//}
-
-	//for (int i = 3; i < 5; i++)
-	//{
-	//	if (FrameX == i && FrameY == 3) return OBJ_GROUND;
-	//}
-	//
-	//for (int i = 3; i < 11; i++)
-	//{
-	//	if (FrameX == i && FrameY == 4) return OBJ_GROUND;
-	//}
-	//
-	//for (int i = 10; i < 20; i++)
-	//{
-	//	if (FrameX == i && FrameY == 1) return OBJ_GROUND;
-	//}
-
-	//for (int i = 5; i < 10; i++)
-	//{
-	//	for (int j = 17; j < 18; j++)
-	//	{
-	//		if(FrameX == i && FrameY == j) return OBJ_GROUND;
-	//	}
-	//}
-	//
-	//for (int i = 15; i < 21; i++)
-	//{
-	//	if (FrameX == i && FrameY == 18) return OBJ_GROUND;
-	//}
-
-	//for (int i = 0; i < 4; i++)
-	//{
-	//	if (FrameX == i && FrameY == 24) return OBJ_GROUND;
-	//}
-
-	//for (int i = 0; i < 19; i++)
-	//{
-	//	if (FrameX == i && FrameY == 25) return OBJ_GROUND;
-	//}
-
-	//for (int i = 17; i < 20; i++)
-	//{
-	//	if (FrameX == i && FrameY == 13) return OBJ_THORN;
-	//}
-
-	////오브젝트인지 잘 모르겠음
-	//for (int i = 5; i < 8; i++)
-	//{
-	//	for (int j = 5; j < 8; j++)
-	//	{
-	//		if (i == 6 && j == 6) continue;
-	//		if (FrameX == i && FrameY == j) return OBJ_GROUND;
-	//	}
-	//}
-	//for (int i = 8; i < 11; i++)
-	//{
-	//	if (FrameX = i && FrameY == 5) return OBJ_GROUND;
-	//}
-
-	//if (FrameX == 8 && FrameY == 6) return OBJ_GROUND;
-	////여기까지
-
-	//if (FrameX == 11 && FrameY == 0) return OBJ_GROUND;
-	//if (FrameX == 12 && FrameY == 0) return OBJ_GROUND;
-	//if (FrameX == 13 && FrameY == 0) return OBJ_GROUND;
-	//if (FrameX == 7 && FrameY == 3) return OBJ_GROUND;
-	//if (FrameX == 8 && FrameY == 3) return OBJ_GROUND;
-	//if (FrameX == 10 && FrameY == 3) return OBJ_GROUND;
-	//if (FrameX == 11 && FrameY == 18) return OBJ_GROUND;
-	//if (FrameX == 12 && FrameY == 18) return OBJ_GROUND;
-	//if (FrameX == 3 && FrameY == 12) return	OBJ_GOGROUND;
-	//if (FrameX == 6 && FrameY == 24) return OBJ_GROUND;
-	//if (FrameX == 7 && FrameY == 24) return OBJ_GROUND;
-	//if (FrameX == 8 && FrameY == 24) return OBJ_GROUND;
-
 
 	return OBJ_NULL;
 }
@@ -2773,12 +2696,12 @@ void MapTool::collision()
 		{
 			int rand = RND->getInt(2);
 			_bullet->setBallFire(false);
-			_bullet->setBallFire(false);
 			if (rand == 1)
 			{
 				_mM->addDmon(_mM->getEmon()[j]->getDex().num);
-				_tiles[_mM->getEmon()[j]->getLoca()].fight=false;
+				_tiles[_mM->getEmon()[j]->getRoad()[0]].fight=false;
 				_mM->deleteEmon(j);
+				return;
 			}
 		}
 		for (int i = 0; i < _bullet->getVBullet().size(); i++)
@@ -2790,7 +2713,7 @@ void MapTool::collision()
 				else
 					_mM->getEmon()[j]->setHp(_mM->getEmon()[j]->getHp() - _bullet->getVBullet()[i].power * 2);
 				_bullet->removeBullet(i);
-				continue;
+				return;
 			}
 		}
 	}
@@ -2808,7 +2731,7 @@ void MapTool::collision()
 }
 
 MapTool::MapTool()
-	: _currentXY({20,20}), _currentTileO({ 0,0 }),_currentTileT({ 5,0 }), _player(0)
+	: _currentTileO({ 0,0 }),_currentTileT({ 5,0 }), _player(0)
 {}
 
 MapTool::~MapTool(){}

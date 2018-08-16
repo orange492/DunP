@@ -53,7 +53,7 @@ void Bullet::bulletFire(const char* imgName, float x, float y, float angle, int 
 	bullet.power = power;
 	bullet.type = type;
 
-	bullet.rc = RectMakeCenter(bullet.x, bullet.y, bullet.img->getFrameWidth(), bullet.img->getFrameHeight());
+	bullet.rc = RectMakeCenter(bullet.x, bullet.y, 16, 16);
 	
 	_vBullet.push_back(bullet);
 }
@@ -66,7 +66,7 @@ void Bullet::ballFire(float x, float y, float angle)
 	_ball.y = y;
 	_ball.frameX = 0;
 	_ball.angle = angle;
-	_ball.rc = RectMakeCenter(_ball.x, _ball.y, _ball.img->getFrameWidth(), _ball.img->getFrameHeight());
+	_ball.rc = RectMakeCenter(_ball.x, _ball.y,29, 25);
 	_ball.isFire = true;
 }
 

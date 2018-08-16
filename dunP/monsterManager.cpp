@@ -7,10 +7,10 @@ HRESULT monsterManager::init()
 {
 	dexSetting();
 
-	//for (int i = 0; i < 15; i++)
-	//{
-	//	addDmon(i);
-	//}
+	for (int i = 0; i < 15; i++)
+	{
+		addDmon(i);
+	}
 	//addEmon(0);
 	
 	return S_OK;
@@ -48,7 +48,7 @@ void monsterManager::update()
 		if (_vEmon[i]->getHp() <= 0)
 		{
 			_mapTool->setMoney(_mapTool->getMoney() + _vEmon[i]->getDex().price);
-			_mapTool->setFight(_vEmon[i]->getLoca(), false);
+			_mapTool->setFight(_vEmon[i]->getRoad()[0], false);
 			 _vEmon.erase(_vEmon.begin() + i);
 			 i--;
 		}
