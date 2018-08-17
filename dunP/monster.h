@@ -4,8 +4,6 @@
 
 class monster : public gameNode
 {
-	//image* _img;
-	//TYPE _type;
 	progressBar* _hpbar;
 	tagMonster _dex;
 	POINTFLOAT	_tile;
@@ -13,14 +11,10 @@ class monster : public gameNode
 	DIR _dir;
 	int _loca;
 	int _hp;
-	//int _power;
-	//int _spd;
-	//int _atSpd;
 	bool _act;
 
 	int _count;
 	int _currentX;
-	//int _currentY;
 
 	vector<int>				_vRoad;
 	vector<int>::iterator	_viRoad;

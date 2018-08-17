@@ -14,8 +14,6 @@ HRESULT playGround::Image_init(void)
 	IMAGEMANAGER->addImage("road", "image/map/road.bmp", 0, 0, 32, 32, true, RGB(0, 255, 255));
 	
 	/////////////////////////UI
-	//IMAGEMANAGER->addImage("black", "image/UI/Black(1920x1080).bmp", 0, 0, 1920, 1080, true, RGB(255, 0, 255), true);
-	//IMAGEMANAGER->addImage("gray", "image/UI/gray(1920x1080).bmp", 0, 0, 1920, 1080, false, RGB(255, 0, 255), true);
 	IMAGEMANAGER->addImage("title", "image/UI/title.bmp", 0, 0, 1920, 1080, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("continue", "image/UI/continue.bmp", 0, 0, 400, 100, true, RGB(0, 255, 255));
 	IMAGEMANAGER->addImage("new", "image/UI/new.bmp", 0, 0, 400, 100, true, RGB(0, 255, 255));

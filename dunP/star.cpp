@@ -26,54 +26,12 @@ void star::release()
 
 void star::update()
 {
-	if (KEYMANAGER->isOnceKeyDown('Z'))
-	{
-		//findRoad(603, 805);
-	}
+
 }
 
 void star::render()
 {
-	//SetTextColor(DC, RGB(10, 10, 10));
-	//SetBkMode(DC, TRANSPARENT);
-	//HFONT font, oldFont;
-	//font = CreateFont(15, 0, 0, 0, 100, 0, 0, 0, DEFAULT_CHARSET,
-	//	OUT_STRING_PRECIS, CLIP_CHARACTER_PRECIS, PROOF_QUALITY,
-	//	DEFAULT_PITCH | FF_SWISS, TEXT("HY¾èÀº»ù¹°M"));
-	//oldFont = (HFONT)SelectObject(DC, font);
 
-	//char str[128];
-	////char str2[128];
-	////char str3[128];
-	////for (int i = 0; i <_vList.size(); ++i)
-	////{
-	////	if (i > 3000) break;
-	////	if (_vList[i].open == 1)
-	////		IMAGEMANAGER->findImage("tile")->render(DC,_mapTool->getTiles()[i].rc.left, _mapTool->getTiles()[i].rc.top);
-	////	else if (_vList[i].open == 2)
-	////		IMAGEMANAGER->findImage("tile2")->render(DC, _mapTool->getTiles()[i].rc.left, _mapTool->getTiles()[i].rc.top);
-	////	//else
-	////	//	sprintf_s(str, " ");
-	////	sprintf_s(str, "%d", (int)_vList[i].F);
-	////	sprintf_s(str2, "%d", (int)_vList[i].G);
-	////	sprintf_s(str3, "%d", (int)_vList[i].H);
-	////	//TextOut(DC, _mapTool->getTiles()[i].rc.left, _mapTool->getTiles()[i].rc.top, str, strlen(str));
-	////	DrawText(DC, TEXT(str), strlen(str), &RectMake(_mapTool->getTiles()[i].rc.left+10, _mapTool->getTiles()[i].rc.top, 100, 50), DT_LEFT | DT_TOP | DT_SINGLELINE);
-	////	DrawText(DC, TEXT(str2), strlen(str), &RectMake(_mapTool->getTiles()[i].rc.left + 10, _mapTool->getTiles()[i].rc.top+10, 100, 50), DT_LEFT | DT_TOP | DT_SINGLELINE);
-	////	DrawText(DC, TEXT(str3), strlen(str), &RectMake(_mapTool->getTiles()[i].rc.left + 10, _mapTool->getTiles()[i].rc.top+20, 100, 50), DT_LEFT | DT_TOP | DT_SINGLELINE);
-	////	//SetBkMode(DC, TRANSPARENT);
-	////	//_mapTool->getTiles()[_vList[i].num].rc.left
-	////	//_vList[i];
-	////}
-
-	///*for (int i = 0; i < _vRoad.size(); ++i)
-	//{
-	//	sprintf_s(str, "%d", _vRoad[i]);
-	//	TextOut(DC, _mapTool->getTiles()[_vRoad[i]].rc.left, _mapTool->getTiles()[_vRoad[i]].rc.top, str, strlen(str));
-	//}*/
-
-	//SelectObject(DC, oldFont);
-	//DeleteObject(font);
 }
 
 void star::setTiles(int start, int end, int endStart, int endX, int endY)
@@ -110,8 +68,6 @@ void star::setTiles(int start, int end, int endStart, int endX, int endY)
 
 			if ((_mapTool->getTiles()[j + i * TILEX].object != OBJ_NULL || _mapTool->getTiles()[j + i * TILEX].terrain == TR_NULL) && j + i * TILEX != end)
 			{
-				//if(_mapTool->getTiles()[j + i * TILEX].object==OBJ_MON&& _mapTool->getTiles()[j + i * TILEX].monPos==MPOS_0)
-				//if(j + i * TILEX == end-1|| j + i * TILEX == end - 99||j + i * TILEX == end - 100||j + i * TILEX == end - 101 || j + i * TILEX == end +1 || j + i * TILEX == end + 99 || j + i * TILEX == end + 100 || j + i * TILEX == end + 101)
 				if (endStart != 0)
 				{
 					if (_mapTool->getTiles()[j + i * TILEX].object == OBJ_MON)
@@ -176,8 +132,6 @@ void star::pathFinder()
 	if (_vList[_currentTile + 1].type != WALL && _vList[_currentTile + TILEX].type != WALL)
 		addOpenList(_currentTile + TILEX+1, 0);
 
-	/*if (_sideNum == 0)
-	{*/
 	int f = 0;
 	int h = 0;
 	int num= TILEX+1;
@@ -245,7 +199,6 @@ void star::addOpenList(int num, bool side)
 		int Road = num;
 		while (_vList[Road].type != START)
 		{
-			//if (Road != num)
 			{
 				if(!(_vRoad.size()==0&& _mapTool->getTiles()[Road].monPos!=MPOS_0))
 					_vRoad.push_back(Road);

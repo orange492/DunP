@@ -6,13 +6,6 @@
 HRESULT monsterManager::init()
 {
 	dexSetting();
-
-	for (int i = 0; i < 15; i++)
-	{
-		addDmon(i);
-	}
-	//addEmon(0);
-	
 	return S_OK;
 }
 
@@ -78,7 +71,6 @@ void monsterManager::render()
 			else if (_mapTool->getTiles()[(*_viEmon)->getLoca() +99].object == OBJ_MON && _mapTool->getTiles()[(*_viEmon)->getLoca() +99].monPos != MPOS_0)
 				(*_viEmon)->setDir(LB);
 		}	
-		//if((*_viEmon)->getAct()==true)
 		(*_viEmon)->render();
 	}
 }
@@ -116,16 +108,6 @@ void monsterManager::addDmon(int i)
 	}
 }
 
-//void monsterManager::addAmon(int i)
-//{
-//	//tagMon	mon;
-//	//ZeroMemory(&mon, sizeof(tagMon));
-//	//mon.num = _dex[i].num;
-//	//mon.hp = _dex[i].hp;
-//	//mon.act = false;
-//	//_vAmon.push_back(mon);
-//}
-
 void monsterManager::addEmon(int id,int i, int dir, vector<int> road)
 {
 	monster*	mon;
@@ -138,11 +120,6 @@ void monsterManager::addEmon(int id,int i, int dir, vector<int> road)
 void monsterManager::eraseDmon(int arrNum)
 {
 	_vDmon.erase(_vDmon.begin() + arrNum);
-}
-
-void monsterManager::eraseAmon(int arrNum)
-{
-	//_vAmon.erase(_vAmon.begin() + arrNum);
 }
 
 void monsterManager::deleteEmon(int i)
@@ -180,8 +157,6 @@ void monsterManager::dexSetting()
 void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food,int price, bool evo, bool dir0, bool dir1, bool dir2, bool dir3)
 {
 	_dex[i].num = i;
-//	_dex[i].img = new image;
-	//_dex[i].img = img;
 	_dex[i].name = name;
 	_dex[i].type = type;
 	_dex[i].size = size;
@@ -199,18 +174,6 @@ void monsterManager::dexSet(int i, image* img, string name, TYPE type, POINT siz
 	_dex[i].dir[2] = dir2;
 	_dex[i].dir[3] = dir3;
 }
-
-//void monsterManager::evolution(bool ad, int i)
-//{
-//	if (ad == 0)//&& _dex[_vDmon[i].num].evolution==true)
-//	{
-//		_vDmon[i].num +=1;
-//	}
-//	//else if(ad == 1)// && _dex[_vAmon[i].num].evolution == true)
-//	//{
-//	//	_vAmon[i].num += 1;
-//	//}
-//}
 
 monsterManager::monsterManager()
 {

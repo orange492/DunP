@@ -14,8 +14,6 @@ HRESULT monster::init(int id,tagMonster dex, int hp, int dir, vector<int> road)
 	int x=_vRoad[_vRoad.size()-1]%100;
 	int y=_vRoad[_vRoad.size()-1]/100;
 	_tile = {(float)x*TILESIZE+16,(float)y*TILESIZE+16};
-	//SetRect(&_rc, x * TILESIZE, y * TILESIZE, x* TILESIZE + TILESIZE, y * TILESIZE + TILESIZE);
-	//_vRoad.erase(_vRoad.begin() + _vRoad.size() - 1);
 	_hpbar->init(_tile.x+5, _tile.y-5 , 20, 5, id);
 
 	return S_OK;
@@ -34,8 +32,6 @@ void monster::update()
 	_hpbar->setX(_tile.x-16 + 5);
 	_hpbar->setY(_tile.y-16);
 	_hpbar->update();
-	/*if (KEYMANAGER->isStayKeyDown('B'))
-		_hp -= 10;*/
 }
 
 void monster::move()
@@ -46,7 +42,6 @@ void monster::move()
 		_tile.x += _dex.spd;
 		if ((_tile.x-16) / TILESIZE >= _vRoad[_vRoad.size() - 2] % 100)
 		{
-			//_tile.x = _vRoad[_vRoad.size() - 2] % 100* TILEX;
 			_vRoad.erase(_vRoad.begin() + _vRoad.size() - 1);
 		}
 	}
@@ -136,7 +131,6 @@ void monster::render()
 	
 	_rc = RectMake(_tile.x-16, _tile.y-16, TILESIZE, TILESIZE);
 	fdraw(str, DC, _rc.left, _rc.top, currentX,_dir);
-	//Rectangle(DC, _rc.left, _rc.top, _rc.right, _rc.bottom);
 	_hpbar->render();
 }
 

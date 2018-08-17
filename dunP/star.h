@@ -29,8 +29,6 @@ class star : public gameNode
 	vector<int>::iterator		_viRoad;
 
 	int _currentTile;
-	//int _sideF;
-	//int _sideNum;
 
 public:
 	star();

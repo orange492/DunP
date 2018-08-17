@@ -14,9 +14,6 @@ class monsterManager : public gameNode
 
 	tagMonster _dex[DEXNUM];
 
-	//vector<monster*>			_vAmon;
-	//vector<monster*>::iterator	_viAmon;
-
 	vector<tagMon2>				_vDmon;
 	vector<tagMon2>::iterator	_viDmon;
 
@@ -31,7 +28,6 @@ public:
 
 	void setHave(int num, int i) { _vDmon[num].have = i; }
 	void addDmon(int i);
-	//void addAmon(int i);
 	void addEmon(int id, int i, int dir, vector<int> road);
 
 	void setVDmon(vector<tagMon2> mon) { _vDmon = mon; }
@@ -39,10 +35,8 @@ public:
 	void dexSetting();
 	void dexSet(int i, image * img, string name, TYPE type, POINT size, int frameX, int frameNum, int fhp, int power, float spd, float atSpd, int food, int price, bool evo, bool dir0, bool dir1, bool dir2, bool dir3);
 	void eraseDmon(int arrNum);
-	void eraseAmon(int arrNum);
 	void deleteEmon(int i);
 	void eraseEmon();
-	//void evolution(bool ad, int i);
 	tagMonster getDex(int i) { return _dex[i]; }
 	vector<tagMon2>	getVDmon() { return _vDmon; }
 	vector<monster*>	getEmon() { return _vEmon; }
