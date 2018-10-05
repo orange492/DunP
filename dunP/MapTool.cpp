@@ -17,7 +17,6 @@
 //체력바
 //공격타일설정
 //죽으면파이트해제,방향
-//탭키
 //플레이어,속성
 //공속,공격방향
 
@@ -1202,14 +1201,13 @@ int num = 0;
 
 	for (int l = 0; l < 3; l++)
 	{
-		for (int k = 0; k < 12; k += 3)
+		for (int k = 0; k < 12; k += 3, num += 4)
 		{
 			for (int j = 0; j < 4; j++)
 			{
 				if (_sampleTile[i].terrainFrameX == j && _sampleTile[i].terrainFrameY == k + l)
 					_wall = j + num;
 			}
-			num += 4;
 		}
 	}
 }
@@ -1939,24 +1937,6 @@ int MapTool::checkstoneTile(int i)
 		return 0;
 }
 
-void MapTool::findDoor()
-{
-	if (_vDoor.size() > 0)
-	{
-		for (_viDoor = _vDoor.begin(); _viDoor != _vDoor.end();)
-		{
-			_viDoor = _vDoor.erase(_viDoor);
-		}
-	}
-	for (int i = 0; i < TILEX * (_currentXY.y + 6); i++)
-	{
-		if (_tiles[i].terrain != TR_FLOOR) continue;
-		if ((_tiles[i - 1].terrain != TR_FLOOR && _tiles[i - 1].object != OBJ_WALL) || (_tiles[i + 1].terrain != TR_FLOOR && _tiles[i + 1].object != OBJ_WALL)
-			|| (_tiles[i - 100].terrain != TR_FLOOR && _tiles[i - 100].object != OBJ_WALL) || (_tiles[i + 100].terrain != TR_FLOOR && _tiles[i + 100].object != OBJ_WALL))
-			_vDoor.push_back(i);
-	}
-}
-
 void MapTool::setMinimap(int i)
 {
 	PatBlt(_tempImg->getMemDC(), 0, 0, (_currentXY.x + 4) * TILESIZE, (_currentXY.y + 7) * TILESIZE, WHITENESS);
@@ -1967,9 +1947,11 @@ void MapTool::setMinimap(int i)
 		{
 			if (_tiles[i * TILEX + j].object == OBJ_NULL && _tiles[i * TILEX + j].terrain == TR_NULL) continue;
 			if(_tiles[i * TILEX + j].terrain==TR_FLOOR)
-				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, _tiles[i * TILEX + j].terrainFrameX, _tiles[i * TILEX + j].terrainFrameY);
+				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, 
+					_tiles[i * TILEX + j].terrainFrameX, _tiles[i * TILEX + j].terrainFrameY);
 			else if (_tiles[i * TILEX + j].object==OBJ_WALL)
-				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, _tiles[i * TILEX + j].objFrameX, _tiles[i * TILEX + j].objFrameY);
+				IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles[(i - 5) * TILEX + j-2].rc.left, _tiles[(i - 5) * TILEX + j - 2].rc.top, 
+					_tiles[i * TILEX + j].objFrameX, _tiles[i * TILEX + j].objFrameY);
 			}
 	}
 	PatBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, WHITENESS);
@@ -2006,9 +1988,11 @@ void MapTool::setMinimap2()
 			{
 				if (_tiles2[i * TILEX + j].object == OBJ_NULL && _tiles2[i * TILEX + j].terrain == TR_NULL) continue;
 				if (_tiles2[i * TILEX + j].terrain == TR_FLOOR)
-					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].terrainFrameX, _tiles2[i * TILEX + j].terrainFrameY);
+					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, 
+						_tiles2[i * TILEX + j].terrainFrameX, _tiles2[i * TILEX + j].terrainFrameY);
 				else if (_tiles2[i * TILEX + j].object == OBJ_WALL)
-					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, _tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
+					IMAGEMANAGER->frameRender("map", _tempImg->getMemDC(), _tiles2[(i - 5) * TILEX + j - 2].rc.left, _tiles2[(i - 5) * TILEX + j - 2].rc.top, 
+						_tiles2[i * TILEX + j].objFrameX, _tiles2[i * TILEX + j].objFrameY);
 				}
 		}
 		PatBlt(_minimap[i]->getMemDC(), 0, 0, _mapX, _mapY, WHITENESS);
@@ -2252,6 +2236,24 @@ void MapTool::findRoad()
 	}
 }
 
+void MapTool::findDoor()
+{
+	if (_vDoor.size() > 0)
+	{
+		for (_viDoor = _vDoor.begin(); _viDoor != _vDoor.end();)
+		{
+			_viDoor = _vDoor.erase(_viDoor);
+		}
+	}
+	for (int i = 0; i < TILEX * (_currentXY.y + 6); i++)
+	{
+		if (_tiles[i].terrain != TR_FLOOR) continue;
+		if ((_tiles[i - 1].terrain != TR_FLOOR && _tiles[i - 1].object != OBJ_WALL) || (_tiles[i + 1].terrain != TR_FLOOR && _tiles[i + 1].object != OBJ_WALL)
+			|| (_tiles[i - 100].terrain != TR_FLOOR && _tiles[i - 100].object != OBJ_WALL) || (_tiles[i + 100].terrain != TR_FLOOR && _tiles[i + 100].object != OBJ_WALL))
+			_vDoor.push_back(i);
+	}
+}
+
 void MapTool::setMon(int i)
 {
 	tagMon mon;
@@ -2263,6 +2265,7 @@ void MapTool::setMon(int i)
 	mon.currentY = 0;
 	mon.frameNum = 0;
 	mon.frameCount = 0;
+	mon.id = 0;
 	for (int k = -1; k < _mM->getDex(_tiles[i].mon).size.y + 1; k++)
 	{
 		for (int j = -1; j < _mM->getDex(_tiles[i].mon).size.x + 1; j++)
@@ -2275,7 +2278,6 @@ void MapTool::setMon(int i)
 		}
 	}
 	mon.hpbar = new progressBar;
-	mon.id=0;
 	if (_vMonNum.size() == 0)
 		mon.id = 0;
 	else
@@ -2420,7 +2422,7 @@ void MapTool::collision()
 				_mM->deleteEmon(j);
 				return;
 			}
-		}
+		} // 몬스터볼 포획
 		for (int i = 0; i < _bullet->getVBullet().size(); i++)
 		{
 			if (IntersectRect(&temp, &_bullet->getVBullet()[i].rc, &_mM->getEmon()[j]->getRc()))
